@@ -1,0 +1,16 @@
+---
+import "../styles/global.css";
+import Search from "../components/Search";
+import Layout from "../layouts/Layout.astro";
+import Results from "../components/Results";
+import { SearchProvider } from "../context/SearchContext";
+---
+
+<Layout>
+  <main>
+    <div class="container mx-auto px-4">
+      <Search client:load />
+      <Results client:load />
+    </div>
+  </main>
+</Layout>
