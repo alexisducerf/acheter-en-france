@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution} from '../stores/search';
+import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults} from '../stores/search';
 import {getDestinationsFromLocalStorage} from '../utils/helpers';
 import {getDuration} from '../services/durations';
 import { getLatLngFromZipCode } from '../services/geolocation';
 import { getCodeInsee } from '../services/insee';
 import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/georisks';
+import {getLegislativesElectionResults, getPresidentElectionResults} from '../services/political';
 
 const Search = () => {
   const [formData, setFormData] = useState({
@@ -35,12 +36,16 @@ const Search = () => {
       const sismicRisksGeo = await getSismicRisks(formData.city, codeInseeFromPostalCode); 
       const soilPollutionGeo = await getSoilPollution(formData.city, codeInseeFromPostalCode);
       const geoGasparRisksGeo = await getGeoGasparRisks(formData.city, codeInseeFromPostalCode);
+      const legislativesElectionResultsFetch = await getLegislativesElectionResults(codeInseeFromPostalCode);
+      const presidentElectionResultsFetch = await getPresidentElectionResults(codeInseeFromPostalCode);
       
       durationPerDestination.set([]);
       codeInsee.set(codeInseeFromPostalCode);
       sismicRisks.set(sismicRisksGeo);
       soilPollution.set(soilPollutionGeo);
       geoGasparRisks.set(geoGasparRisksGeo);
+      legislativesElectionResults.set(legislativesElectionResultsFetch);
+      presidentElectionResults.set(presidentElectionResultsFetch);
       
       // Use Promise.all to handle all durations concurrently
       const durations = await Promise.all(

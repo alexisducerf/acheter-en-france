@@ -8,3 +8,5 @@ export const codeInsee = atom(null);
 export const sismicRisks = atom(null);
 export const soilPollution = atom(null);
 export const geoGasparRisks = atom(null);
+export const legislativesElectionResults = atom(null);
+export const presidentElectionResults = atom(null);
