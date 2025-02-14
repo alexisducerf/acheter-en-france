@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { isLoaded, isLoading, hasErrors, durationPerDestination} from '../stores/search';
+import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution} from '../stores/search';
 import {getDestinationsFromLocalStorage} from '../utils/helpers';
 import {getDuration} from '../services/durations';
 import { getLatLngFromZipCode } from '../services/geolocation';
+import { getCodeInsee } from '../services/insee';
+import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/georisks';
 
 const Search = () => {
   const [formData, setFormData] = useState({
@@ -11,9 +13,6 @@ const Search = () => {
     city: 'Saint Junien'
   });
   
-  // Move the useStore hook to the top level
-  const $durationPerDestination = useStore(durationPerDestination);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -24,9 +23,16 @@ const Search = () => {
 
       const cityCoordinates = await getLatLngFromZipCode(formData.postalCode);
       const destinations = getDestinationsFromLocalStorage();
+      const codeInseeFromPostalCode = await getCodeInsee(formData.postalCode, formData.city); 
+      const sismicRisksGeo = await getSismicRisks(formData.city, codeInseeFromPostalCode); 
+      const soilPollutionGeo = await getSoilPollution(formData.city, codeInseeFromPostalCode);
+      const geoGasparRisksGeo = await getGeoGasparRisks(formData.city, codeInseeFromPostalCode);
       
-      // Reset durations before new search
       durationPerDestination.set([]);
+      codeInsee.set(codeInseeFromPostalCode);
+      sismicRisks.set(sismicRisksGeo);
+      soilPollution.set(soilPollutionGeo);
+      geoGasparRisks.set(geoGasparRisksGeo);
       
       // Use Promise.all to handle all durations concurrently
       const durations = await Promise.all(
@@ -46,6 +52,15 @@ const Search = () => {
       durationPerDestination.set(durations);
       
       isLoaded.set(true);
+      
+      // Scroll to results
+      setTimeout(() => {
+        document.getElementById('search-results')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 100);
+
     } catch (error) {
       console.error('Search error:', error);
       hasErrors.set(true);
