@@ -3,14 +3,15 @@ import "../styles/global.css";
 import Search from "../components/Search";
 import Layout from "../layouts/Layout.astro";
 import Results from "../components/Results";
-import { SearchProvider } from "../context/SearchContext";
+import Destinations from "../components/Destinations";
 ---
 
 <Layout>
   <main>
-    <div class="container mx-auto px-4">
+    <div class="flex flex-col lg:flex-row justify-around gap-4 px-4">
       <Search client:load />
       <Results client:load />
+      <Destinations client:load />
     </div>
   </main>
 </Layout>

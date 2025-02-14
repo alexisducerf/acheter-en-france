@@ -8,8 +8,6 @@ const Search = () => {
     city: ''
   });
 
-
-
   const handleSubmit = (e) => {
 
     isLoaded.set(false);
@@ -36,7 +34,7 @@ const Search = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg mt-6">
+    <div className="basis-1/3 p-6 bg-white rounded-lg shadow-lg mt-8">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">
         Recherche par localisation
       </h2>
