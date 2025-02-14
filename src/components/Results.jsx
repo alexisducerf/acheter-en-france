@@ -7,32 +7,26 @@ const Results = () => {
   const $isLoaded = useStore(isLoaded);
   const $hasErrors = useStore(hasErrors);
 
+  let content = null;
+
+
   if ($isLoading) {
-    return (
-      <div className="w-full lg:basis-1/2 p-6 bg-white rounded-lg shadow-lg mt-6">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-          Recherche par localisation
-        </h2>
-        <p className="text-gray-600">Recherche en cours...</p>
-      </div>
-    );
+     content = <p className="text-gray-600">Recherche en cours...</p>; 
   } else if ($isLoaded) {
-    return (
-      <div className="w-full lg:basis-1/2 p-6 bg-white rounded-lg shadow-lg mt-6">
-        TROUVÉ
-      </div>
-    );
+    content = <p className="text-gray-600">Trouvé</p>; 
   } else if ($hasErrors) {
+    content = <p className="text-red-600">{error}</p>
+  }
+
+  if($isLoaded || $hasErrors || $isLoading) { 
     return (
-      <div className="w-full lg:basis-1/2 p-6 bg-white rounded-lg shadow-lg mt-6">
+      <div className="w-full  p-6 bg-white rounded-lg shadow-lg mt-6">
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
           Recherche par localisation
         </h2>
-        <p className="text-red-600">{error}</p>
+          {content}
       </div>
     );
-  } else {
-    return <></>;
   }
 };
 

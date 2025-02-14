@@ -7,11 +7,11 @@ import Destinations from "../components/Destinations";
 ---
 
 <Layout>
-  <main>
-    <div class="flex flex-col lg:flex-row justify-around gap-4 px-4">
+  <main class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Search client:load />
-      <Results client:load />
       <Destinations client:load />
     </div>
+    <Results client:load />
   </main>
 </Layout>
