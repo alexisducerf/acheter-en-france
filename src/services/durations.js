@@ -6,7 +6,7 @@ const getDuration = async (originLat, originLng, destLat, destLng, city = '', po
     await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
 
     const response = await axios.get(
-      `http://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}`, {
+      `https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}`, {
       params: {
         overview: 'false',
         alternatives: false,
