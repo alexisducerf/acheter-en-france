@@ -126,12 +126,12 @@ export const getPresidentElectionResults = async (code_insee) => {
           libelle_commune: row.c[3]?.v
         },
         participation: {
-          inscrits: row.c[6]?.v,
-          abstentions: row.c[7]?.v,
-          votants: row.c[9]?.v,
-          blancs: row.c[11]?.v,
-          nuls: row.c[14]?.v,
-          exprimes: row.c[17]?.v
+          inscrits: row.c[5]?.v,
+          abstentions: row.c[6]?.v,
+          votants: row.c[8]?.v,
+          blancs: row.c[10]?.v,
+          nuls: row.c[13]?.v,
+          exprimes: row.c[16]?.v
         },
         candidats: [
           {

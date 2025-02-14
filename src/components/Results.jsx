@@ -64,6 +64,7 @@ const Results = () => {
                     <li>Inscrits: {$presidentElectionResults.participation.inscrits}</li>
                     <li>Votants: {$presidentElectionResults.participation.votants}</li>
                     <li>Exprimés: {$presidentElectionResults.participation.exprimes}</li>
+                    <li>Abstentions: {$presidentElectionResults.participation.abstentions}</li>
                   </ul>
                 </div>
                 <div>
@@ -93,6 +94,7 @@ const Results = () => {
                     <li>Inscrits: {$legislativesElectionResults.participation.inscrits}</li>
                     <li>Votants: {$legislativesElectionResults.participation.votants}</li>
                     <li>Exprimés: {$legislativesElectionResults.participation.exprimes}</li>
+                    <li>Abstentions: {$legislativesElectionResults.participation.abstentions}</li>
                   </ul>
                 </div>
                 <div>
