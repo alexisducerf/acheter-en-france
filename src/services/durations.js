@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { formatDuration } from '../utils/helpers';
 
-const getDuration = async (originLat, originLng, destLat, destLng) => {
+const getDuration = async (originLat, originLng, destLat, destLng, city = '', postalCode = '') => {
   try {
     await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting
 
@@ -18,7 +19,9 @@ const getDuration = async (originLat, originLng, destLat, destLng) => {
 
       return {
         duration: formatDuration(minutes),
-        distance: Math.round(response.data.routes[0].distance / 1000) // Convert to km
+        distance: Math.round(response.data.routes[0].distance / 1000),
+        city,
+        postalCode
       };
     }
     return null;

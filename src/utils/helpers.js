@@ -26,5 +26,9 @@ const formatDuration = (minutes) => {
     : `${hours}h`;
 };
 
+const getDestinationsFromLocalStorage = () => {
+  const destinations = localStorage.getItem('savedDestinations');
+  return destinations ? JSON.parse(destinations) : [];
+};
 
-export { convertDurationToMinutes, formatDuration };
+export { convertDurationToMinutes, formatDuration, getDestinationsFromLocalStorage };

@@ -1,27 +1,57 @@
 import { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { isLoaded, isLoading, hasErrors} from '../stores/search';
+import { isLoaded, isLoading, hasErrors, durationPerDestination} from '../stores/search';
+import {getDestinationsFromLocalStorage} from '../utils/helpers';
+import {getDuration} from '../services/durations';
+import { getLatLngFromZipCode } from '../services/geolocation';
 
 const Search = () => {
   const [formData, setFormData] = useState({
-    postalCode: '',
-    city: ''
+    postalCode: '28700',
+    city: 'Auneau'
   });
+  
+  // Move the useStore hook to the top level
+  const $durationPerDestination = useStore(durationPerDestination);
 
-  const handleSubmit = (e) => {
-
-    isLoaded.set(false);
-    isLoading.set(true);
-
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Searching for:', formData);
-    // Add your search logic here
-    // Simulate search completion
-    setTimeout(() => {
-      isLoaded.set(true);
-      isLoading.set(false);
+    
+    try {
+      isLoaded.set(false);
+      isLoading.set(true);
       hasErrors.set(false);
-    }, 2000);
+
+      const cityCoordinates = await getLatLngFromZipCode(formData.postalCode);
+      const destinations = getDestinationsFromLocalStorage();
+      
+      // Reset durations before new search
+      durationPerDestination.set([]);
+      
+      // Use Promise.all to handle all durations concurrently
+      const durations = await Promise.all(
+        destinations.map(async (dest) => {
+          return await getDuration(
+            cityCoordinates.lat, 
+            cityCoordinates.lng, 
+            dest.coordinates.lat, 
+            dest.coordinates.lng, 
+            dest.city, 
+            dest.postalCode
+          );
+        })
+      );
+      
+      // Set all durations at once
+      durationPerDestination.set(durations);
+      
+      isLoaded.set(true);
+    } catch (error) {
+      console.error('Search error:', error);
+      hasErrors.set(true);
+    } finally {
+      isLoading.set(false);
+    }
   };
 
   const handleChange = (e) => {

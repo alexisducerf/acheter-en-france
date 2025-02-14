@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
-import { getLatLngFromZipCode } from '../../services/geolocation';
+import { getLatLngFromZipCode } from '../services/geolocation';
 
 const Destinations = () => {
   const [destinations, setDestinations] = useState([]);
