@@ -15,6 +15,14 @@ const Search = () => {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+      // Scroll to results
+      setTimeout(() => {
+        document.getElementById('search-results')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 100);
     
     try {
       isLoaded.set(false);
@@ -52,14 +60,6 @@ const Search = () => {
       durationPerDestination.set(durations);
       
       isLoaded.set(true);
-      
-      // Scroll to results
-      setTimeout(() => {
-        document.getElementById('search-results')?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }, 100);
 
     } catch (error) {
       console.error('Search error:', error);
