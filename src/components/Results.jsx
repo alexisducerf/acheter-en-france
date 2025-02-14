@@ -1,5 +1,6 @@
 import { useStore } from '@nanostores/react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination} from '../stores/search';
+import Accordions from './Accordions';
 
 const Results = () => {
 
@@ -16,12 +17,19 @@ const Results = () => {
   if ($isLoading) {
      content = <p className="text-gray-600">Recherche en cours...</p>; 
   } else if ($isLoaded) {
-    content = <p className="text-gray-600">{
-      $durationPerDestination.map(dest => <p>{dest.city} ({dest.postalCode}) - <strong>{dest.duration}</strong> (<i>{dest.distance} kms</i>)   </p>)
-      }</p>; 
+    content = <> {
+      $durationPerDestination.map((dest, i) => <p key={i}>{dest.city} ({dest.postalCode}) - <strong>{dest.duration}</strong> (<i>{dest.distance} kms</i>)   </p>)
+      }</>; 
   } else if ($hasErrors) {
     content = <p className="text-red-600">{error}</p>
   }
+
+  const elements = [
+    {
+      title: 'Durée et distance',
+      content: content
+    }
+  ];
 
   if($isLoaded || $hasErrors || $isLoading) { 
     return (
@@ -29,7 +37,7 @@ const Results = () => {
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
           Recherche par localisation
         </h2>
-          {content}
+        <Accordions elements={elements} />          
       </div>
     );
   }

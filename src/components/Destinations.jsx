@@ -64,7 +64,7 @@ const Destinations = () => {
               <span className="text-gray-500 ml-2">({dest.postalCode})</span>
               {dest.coordinates && (
                 <span className="text-xs text-gray-400 block">
-                  lat: {dest.coordinates.lat}, 
+                  lat: {dest.coordinates.lat} <br />
                   lng: {dest.coordinates.lng}
                 </span>
               )}

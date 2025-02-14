@@ -7,8 +7,8 @@ import { getLatLngFromZipCode } from '../services/geolocation';
 
 const Search = () => {
   const [formData, setFormData] = useState({
-    postalCode: '28700',
-    city: 'Auneau'
+    postalCode: '87200',
+    city: 'Saint Junien'
   });
   
   // Move the useStore hook to the top level

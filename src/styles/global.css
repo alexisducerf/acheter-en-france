@@ -3,3 +3,7 @@
 main {
   min-height: 83vh;
 }
+
+#accordion-open h2 {
+  color: #000;
+}
