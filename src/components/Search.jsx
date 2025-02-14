@@ -9,8 +9,8 @@ import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/g
 
 const Search = () => {
   const [formData, setFormData] = useState({
-    postalCode: '87200',
-    city: 'Saint Junien'
+    postalCode: '',
+    city: ''
   });
   
   const handleSubmit = async (e) => {
