@@ -1,5 +1,6 @@
 import { useStore } from '@nanostores/react';
-import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024} from '../stores/search';
+import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, 
+  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData, totalTasks, completedTasks} from '../stores/search';
 import Accordions from './Accordions';
 
 const Results = () => {
@@ -16,14 +17,19 @@ const Results = () => {
   const $legislativesElectionResults = useStore(legislativesElectionResults);
   const $presidentElectionResults = useStore(presidentElectionResults);
   const $legislativesElectionResults2024 = useStore(legislativesElectionResults2024);
-
-  console.log('Results:', $legislativesElectionResults2024);
-  
+  const $inseeData = useStore(inseeData);
+  const $totalTasks = useStore(totalTasks);
+  const $completedTasks = useStore(completedTasks);
 
   let content = null;
 
   if ($isLoading) {
-     content = <p className="text-gray-600">Recherche en cours...</p>; 
+    content = (
+      <div className="text-gray-600">
+        <p>Recherche en cours...</p>
+        <p className="text-sm mt-1">Progression : {$completedTasks}/{$totalTasks} tâches complétées</p>
+      </div>
+    );
   } else if ($hasErrors) {
     content = <p className="text-red-600">{error}</p>
   }
@@ -146,10 +152,49 @@ const Results = () => {
         </div>
       )
     },
-   
     {
-      title: 'INSEE',
-      content: 'Code de la Commune: ' + $codeInsee
+      title: 'Données INSEE',
+      content: $inseeData && (
+        <div className="space-y-12">
+          {Object.entries($inseeData).map(([tableName, tableData]) => (
+            <div key={tableName} className="space-y-4 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-700 pb-2 border-b border-gray-200">
+                {tableName}
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200">
+                    {tableData.map((row, rowIndex) => (
+                      <tr 
+                        key={rowIndex}
+                        className={`
+                          ${rowIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
+                          hover:bg-gray-100 transition-colors
+                        `}
+                      >
+                        {row.map((cell, cellIndex) => (
+                          <td 
+                            key={cellIndex}
+                            className={`
+                              px-6 py-3 text-sm whitespace-nowrap
+                              ${cellIndex === 0 
+                                ? 'font-medium text-gray-700 bg-gray-50'
+                                : 'text-gray-600'}
+                              ${cellIndex === 0 ? 'border-r border-gray-200' : ''}
+                            `}
+                          >
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      )
     },
   ];
 

@@ -19,3 +19,21 @@ async function getCodeInsee(postcode, city) {
 }
 
 export { getCodeInsee };
+
+export const getInseeData = async (code_insee) => {
+  try {
+    // Use relative path for local development and production
+    const response = await axios.post('/api/getInsee', {
+      code_insee
+    });
+
+    if (!response.data) {
+      throw new Error('No data received from INSEE');
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching INSEE data:', error);
+    throw new Error('Failed to fetch INSEE data');
+  }
+};

@@ -11,9 +11,6 @@ const getLatLngFromZipCode = async (zipCode) => {
         postalcode: zipCode,
         country: 'France',
         format: 'json',
-      },
-      headers: {
-        'User-Agent': 'OuAcheterEnFrance/1.0' // Required by Nominatim
       }
     }
     );

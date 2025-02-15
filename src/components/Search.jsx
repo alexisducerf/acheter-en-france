@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { useStore } from '@nanostores/react';
-import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024} from '../stores/search';
+import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks,
+   sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults,
+    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks} from '../stores/search';
 import {getDestinationsFromLocalStorage} from '../utils/helpers';
 import {getDuration} from '../services/durations';
 import { getLatLngFromZipCode } from '../services/geolocation';
 import { getCodeInsee } from '../services/insee';
 import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/georisks';
 import {getLegislativesElectionResults, getPresidentElectionResults, getLegislativesElectionResults2024} from '../services/political';
+import { getInseeData } from '../services/insee';
 
 const Search = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +18,8 @@ const Search = () => {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    completedTasks.set(0);
 
       // Scroll to results
       setTimeout(() => {
@@ -31,14 +35,34 @@ const Search = () => {
       hasErrors.set(false);
 
       const cityCoordinates = await getLatLngFromZipCode(formData.postalCode);
+      incrementCompletedTasks(); 
+
       const destinations = getDestinationsFromLocalStorage();
+      incrementCompletedTasks(); 
+
       const codeInseeFromPostalCode = await getCodeInsee(formData.postalCode, formData.city); 
+      incrementCompletedTasks(); 
+
       const sismicRisksGeo = await getSismicRisks(formData.city, codeInseeFromPostalCode); 
+      incrementCompletedTasks(); 
+
       const soilPollutionGeo = await getSoilPollution(formData.city, codeInseeFromPostalCode);
+      incrementCompletedTasks(); 
+
       const geoGasparRisksGeo = await getGeoGasparRisks(formData.city, codeInseeFromPostalCode);
+      incrementCompletedTasks(); 
+
       const legislativesElectionResultsFetch = await getLegislativesElectionResults(codeInseeFromPostalCode);
+      incrementCompletedTasks(); 
+
       const presidentElectionResultsFetch = await getPresidentElectionResults(codeInseeFromPostalCode);
+      incrementCompletedTasks(); 
+
       const legislativesElectionResults2024Fetch = await getLegislativesElectionResults2024(codeInseeFromPostalCode);
+      incrementCompletedTasks(); 
+
+      const inseeDataFetch = await getInseeData(codeInseeFromPostalCode);
+      incrementCompletedTasks(); 
       
       durationPerDestination.set([]);
       codeInsee.set(codeInseeFromPostalCode);
@@ -48,6 +72,7 @@ const Search = () => {
       legislativesElectionResults.set(legislativesElectionResultsFetch);
       presidentElectionResults.set(presidentElectionResultsFetch);
       legislativesElectionResults2024.set(legislativesElectionResults2024Fetch);
+      inseeData.set(inseeDataFetch);
       
       // Use Promise.all to handle all durations concurrently
       const durations = await Promise.all(

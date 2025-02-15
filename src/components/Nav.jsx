@@ -6,7 +6,6 @@ const Nav = () => {
 
   useEffect(() => { 
     setCurrentPath(window.location.pathname);
-    console.log('Current path:', currentPath);
   }, []);
 
   const isActive = (path) => currentPath === path;

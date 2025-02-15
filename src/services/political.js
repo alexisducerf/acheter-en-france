@@ -109,9 +109,6 @@ export const getLegislativesElectionResults2024 = async (code_insee) => {
     const data = response.data;
     const jsonData = JSON.parse(data.substring(47, data.length - 2));
 
-    // ... rest of the function
-
-    console.log('legislative', jsonData);
     if (!jsonData.table.rows || jsonData.table.rows.length === 0) {
       return null;
     }

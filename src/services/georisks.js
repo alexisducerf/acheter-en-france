@@ -9,11 +9,7 @@ const getSismicRisks = async (city, code_insee) => {
       },
       headers: {
         'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'Referer': 'https://www.georisques.gouv.fr/',
-        'Origin': 'https://www.georisques.gouv.fr',
-        'Connection': 'keep-alive'
+        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8'
       }
     });
 
@@ -36,11 +32,7 @@ const getSoilPollution = async (city, code_insee) => {
       },
       headers: {
         'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'Referer': 'https://www.georisques.gouv.fr/',
-        'Origin': 'https://www.georisques.gouv.fr',
-        'Connection': 'keep-alive'
+        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8'
       }
     });
 
@@ -66,11 +58,7 @@ const getGeoGasparRisks = async (city, code_insee) => {
       },
       headers: {
         'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        'Referer': 'https://www.georisques.gouv.fr/',
-        'Origin': 'https://www.georisques.gouv.fr',
-        'Connection': 'keep-alive'
+        'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8'
       }
     });
 
