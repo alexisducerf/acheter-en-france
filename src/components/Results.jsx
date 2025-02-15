@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react';
-import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults} from '../stores/search';
+import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024} from '../stores/search';
 import Accordions from './Accordions';
 
 const Results = () => {
@@ -15,8 +15,9 @@ const Results = () => {
   const soilPollutionTotal = $soilPollution || {number: 0, elements: ''};
   const $legislativesElectionResults = useStore(legislativesElectionResults);
   const $presidentElectionResults = useStore(presidentElectionResults);
+  const $legislativesElectionResults2024 = useStore(legislativesElectionResults2024);
 
-  console.log('Results:', $legislativesElectionResults, $presidentElectionResults);
+  console.log('Results:', $legislativesElectionResults2024);
   
 
   let content = null;
@@ -101,6 +102,35 @@ const Results = () => {
                   <h4 className="font-medium text-gray-600 mb-2">Résultats</h4>
                   <ul className="space-y-1 text-sm">
                     {$legislativesElectionResults.candidats
+                      .sort((a, b) => b.voix - a.voix)
+                      .map((candidat, i) => (
+                        <li key={i} className={i < 3 ? 'font-medium' : ''}>
+                          {candidat.nom} {candidat.prenom} ({candidat.nuance}): {candidat.voix} voix ({candidat.pourcentage_voix_exprimes}%)
+                        </li>
+                      ))
+                    }
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+          {$legislativesElectionResults2024 && (
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-gray-700">Législatives 2024</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium text-gray-600 mb-2">Participation</h4>
+                  <ul className="space-y-1 text-sm">
+                    <li>Inscrits: {$legislativesElectionResults2024.participation.inscrits}</li>
+                    <li>Votants: {$legislativesElectionResults2024.participation.votants}</li>
+                    <li>Exprimés: {$legislativesElectionResults2024.participation.exprimes}</li>
+                    <li>Abstentions: {$legislativesElectionResults2024.participation.abstentions}</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-600 mb-2">Résultats</h4>
+                  <ul className="space-y-1 text-sm">
+                    {$legislativesElectionResults2024.candidats
                       .sort((a, b) => b.voix - a.voix)
                       .map((candidat, i) => (
                         <li key={i} className={i < 3 ? 'font-medium' : ''}>

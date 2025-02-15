@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults} from '../stores/search';
+import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024} from '../stores/search';
 import {getDestinationsFromLocalStorage} from '../utils/helpers';
 import {getDuration} from '../services/durations';
 import { getLatLngFromZipCode } from '../services/geolocation';
 import { getCodeInsee } from '../services/insee';
 import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/georisks';
-import {getLegislativesElectionResults, getPresidentElectionResults} from '../services/political';
+import {getLegislativesElectionResults, getPresidentElectionResults, getLegislativesElectionResults2024} from '../services/political';
 
 const Search = () => {
   const [formData, setFormData] = useState({
@@ -38,6 +38,7 @@ const Search = () => {
       const geoGasparRisksGeo = await getGeoGasparRisks(formData.city, codeInseeFromPostalCode);
       const legislativesElectionResultsFetch = await getLegislativesElectionResults(codeInseeFromPostalCode);
       const presidentElectionResultsFetch = await getPresidentElectionResults(codeInseeFromPostalCode);
+      const legislativesElectionResults2024Fetch = await getLegislativesElectionResults2024(codeInseeFromPostalCode);
       
       durationPerDestination.set([]);
       codeInsee.set(codeInseeFromPostalCode);
@@ -46,6 +47,7 @@ const Search = () => {
       geoGasparRisks.set(geoGasparRisksGeo);
       legislativesElectionResults.set(legislativesElectionResultsFetch);
       presidentElectionResults.set(presidentElectionResultsFetch);
+      legislativesElectionResults2024.set(legislativesElectionResults2024Fetch);
       
       // Use Promise.all to handle all durations concurrently
       const durations = await Promise.all(
