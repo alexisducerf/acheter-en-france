@@ -38,7 +38,7 @@ const AssociationsSection = ({ associations = [] }) => {
         <div className="divide-y divide-gray-200">
           {associations.map((association) => (
             <div key={association.id} className="p-4 hover:bg-gray-50">
-              {JSON.stringify(association)}
+              
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
@@ -64,11 +64,11 @@ const AssociationsSection = ({ associations = [] }) => {
                 <dl className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm">
                   <div className="space-y-1">
                     <dt className="text-gray-500">Création</dt>
-                    <dd className="font-medium">{formatDate(association.creationDate)}</dd>
+                    <dd className="font-medium">{association.creationDate}</dd>
                   </div>
                   <div className="space-y-1">
                     <dt className="text-gray-500">Dernière mis à jour</dt>
-                    <dd className="font-medium">{formatDate(association.lastUpdate)}</dd>
+                    <dd className="font-medium">{association.lastUpdate}</dd>
                   </div>
                   <div className="space-y-1">
                     <dt className="text-gray-500">Identifiant RNA</dt>
@@ -94,11 +94,11 @@ const AssociationsSection = ({ associations = [] }) => {
                     <dt className="text-gray-500">Intercommunalité</dt>
                     <dd className="font-medium">{association.epci_name}</dd>
                   </div>
-                  (association.website && (
+                  {(association.website && (
                   <div className="space-y-1">
                     <dt className="text-gray-500">Website</dt>
                     <dd className="font-medium">{association.website}</dd>
-                  </div>))
+                  </div>))}
                 </dl>
 
                 {association.geo_point_2d && (

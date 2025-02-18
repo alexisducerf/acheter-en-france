@@ -101,7 +101,7 @@ const Search = () => {
       isLoading.set(true);
       hasErrors.set(false);    
 
-      // Rechercher dans france.json les données de la ville
+      // Get city data first as it's required for other requests
       const cityData = franceData.find(city => 
         city.Code_postal === parseInt(formData.postalCode) && 
         city.Nom_commune === formData.city
@@ -111,76 +111,79 @@ const Search = () => {
         throw new Error('Ville non trouvée');
       }
 
-      // Extraire lat/lng des coordonnées GPS
       const [lat, lng] = cityData.coordonnees_gps.split(', ').map(Number);
       const codeInseeFromPostalCode = cityData.Code_commune_INSEE;
-          
+      
       codeInsee.set(codeInseeFromPostalCode);
       incrementCompletedTasks();
 
+      // Group 1: Geographic and risk data
+      const geoRequests = [
+        getSismicRisks(formData.city, codeInseeFromPostalCode),
+        getSoilPollution(formData.city, codeInseeFromPostalCode),
+        getGeoGasparRisks(formData.city, codeInseeFromPostalCode)
+      ];
+
+      // Group 2: Amenities data
+      const amenityRequests = [
+        getStoresByZipCode(formData.postalCode),
+        getHealthAmenitiesByLatLng(lat, lng),
+        getSchoolsByLatLng(lat, lng),
+        getAssociationsByZipCode(formData.postalCode)
+      ];
+
+      // Group 3: Political and demographic data
+      const politicalRequests = [
+        getLegislativesElectionResults(codeInseeFromPostalCode),
+        getPresidentElectionResults(codeInseeFromPostalCode),
+        getLegislativesElectionResults2024(codeInseeFromPostalCode),
+        getInseeData(codeInseeFromPostalCode)
+      ];
+
+      // Get destinations data
       const destinations = getDestinationsFromLocalStorage();
       incrementCompletedTasks();
 
-      durationPerDestination.set([]);
-      const durations = await Promise.all(
-        destinations.map(async (dest) =>
-          getDuration(
-            lat,
-            lng,
-            dest.coordinates.lat,
-            dest.coordinates.lng,
-            dest.city,
-            dest.postalCode
+      // Execute all requests in parallel
+      const [
+        geoResults,
+        amenityResults,
+        politicalResults,
+        durationResults
+      ] = await Promise.all([
+        Promise.all(geoRequests),
+        Promise.all(amenityRequests),
+        Promise.all(politicalRequests),
+        Promise.all(
+          destinations.map(dest => 
+            getDuration(lat, lng, dest.coordinates.lat, dest.coordinates.lng, dest.city, dest.postalCode)
           )
         )
-      );
+      ]);
 
-      durationPerDestination.set(durations);
-      incrementCompletedTasks();
-
-      const sismicRisksGeo = await getSismicRisks(formData.city, codeInseeFromPostalCode);
+      // Update stores with results
+      const [sismicRisksGeo, soilPollutionGeo, geoGasparRisksGeo] = geoResults;
       sismicRisks.set(sismicRisksGeo);
-      incrementCompletedTasks();
-
-      const soilPollutionGeo = await getSoilPollution(formData.city, codeInseeFromPostalCode);
       soilPollution.set(soilPollutionGeo);
-      incrementCompletedTasks();
-
-      const geoGasparRisksGeo = await getGeoGasparRisks(formData.city, codeInseeFromPostalCode);
       geoGasparRisks.set(geoGasparRisksGeo);
       incrementCompletedTasks();
 
-      const storesFetch = await getStoresByZipCode(formData.postalCode);
+      const [storesFetch, healthAmenitiesFetch, educationAmenitiesFetch, associationsFetch] = amenityResults;
       stores.set(storesFetch);
-      incrementCompletedTasks();
-
-      const healthAmenitiesFetch = await getHealthAmenitiesByLatLng(lat, lng);
       healthAmenities.set(healthAmenitiesFetch);
-      incrementCompletedTasks();
-
-      const educationAmenitiesFetch = await getSchoolsByLatLng(lat, lng);
       educationAmenities.set(educationAmenitiesFetch);
-      incrementCompletedTasks();
-
-      const associationsFetch = await getAssociationsByZipCode(formData.postalCode);
       associations.set(associationsFetch);
       incrementCompletedTasks();
 
-      const legislativesElectionResultsFetch = await getLegislativesElectionResults(codeInseeFromPostalCode);
-      legislativesElectionResults.set(legislativesElectionResultsFetch);
-      incrementCompletedTasks();
-
-      const presidentElectionResultsFetch = await getPresidentElectionResults(codeInseeFromPostalCode);
-      presidentElectionResults.set(presidentElectionResultsFetch);
-      incrementCompletedTasks();
-
-      const legislativesElectionResults2024Fetch = await getLegislativesElectionResults2024(codeInseeFromPostalCode);
-      legislativesElectionResults2024.set(legislativesElectionResults2024Fetch);
-      incrementCompletedTasks();
-
-      const inseeDataFetch = await getInseeData(codeInseeFromPostalCode);
-      incrementCompletedTasks();
+      const [legislativesResults, presidentResults, legislatives2024Results, inseeDataFetch] = politicalResults;
+      legislativesElectionResults.set(legislativesResults);
+      presidentElectionResults.set(presidentResults);
+      legislativesElectionResults2024.set(legislatives2024Results);
       inseeData.set(inseeDataFetch);
+      incrementCompletedTasks();
+
+      durationPerDestination.set(durationResults);
+      incrementCompletedTasks();
 
       isLoaded.set(true);
 
