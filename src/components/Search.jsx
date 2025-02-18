@@ -89,8 +89,27 @@ const Search = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Reset all stores at the beginning of each search
     completedTasks.set(0);
+    isLoaded.set(false);
+    isLoading.set(true);
+    hasErrors.set(false);
+    durationPerDestination.set([]);
+    codeInsee.set('');
+    geoGasparRisks.set(null);
+    sismicRisks.set(null);
+    soilPollution.set(null);
+    legislativesElectionResults.set(null);
+    presidentElectionResults.set(null);
+    legislativesElectionResults2024.set(null);
+    inseeData.set(null);
+    healthAmenities.set(null);
+    stores.set(null);
+    associations.set(null);
+    educationAmenities.set(null);
+    weatherData.set(null);
 
+    // Scroll to results after a short delay
     setTimeout(() => {
       document.getElementById('search-results')?.scrollIntoView({
         behavior: 'smooth',
@@ -99,10 +118,6 @@ const Search = () => {
     }, 100);
     
     try {
-      isLoaded.set(false);
-      isLoading.set(true);
-      hasErrors.set(false);    
-
       // Get city data first as it's required for other requests
       const cityData = franceData.find(city => 
         city.Code_postal === parseInt(formData.postalCode) && 
