@@ -5,7 +5,7 @@ const WeatherSection = ({ weatherData }) => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium text-gray-900">Climat sur les 12 derniers mois</h3>
+      <h3 className="text-lg font-medium text-gray-900">Climat sur les 24 derniers mois</h3>
       
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">

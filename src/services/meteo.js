@@ -4,7 +4,7 @@ const getWeatherFromLastYear = async (lat, lng) => {
   // Get current date and last year's date
   const endDate = new Date();
   const startDate = new Date();
-  startDate.setFullYear(endDate.getFullYear() - 1);
+  startDate.setFullYear(endDate.getFullYear() - 2);
 
   const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}&start_date=${formatDate(startDate)}&end_date=${formatDate(endDate)}&hourly=temperature_2m,rain`;
 
@@ -29,35 +29,50 @@ const getWeatherFromLastYear = async (lat, lng) => {
 };
 
 const processWeatherData = (hourlyData) => {
-  // Group data by month
   const monthlyData = {};
 
   hourlyData.time.forEach((timestamp, index) => {
     const date = new Date(timestamp);
     const month = date.getMonth();
+    const year = date.getFullYear();
+    const monthKey = `${year}-${month.toString().padStart(2, '0')}`; // Format: "2024-01"
     const temperature = hourlyData.temperature_2m[index];
     const rain = hourlyData.rain[index];
 
-    if (!monthlyData[month]) {
-      monthlyData[month] = {
+    if (!monthlyData[monthKey]) {
+      monthlyData[monthKey] = {
+        year,
+        month,
         temperatures: [],
         rainfall: 0,
-        month: new Intl.DateTimeFormat('fr-FR', { month: 'long' }).format(date)
+        monthDisplay: new Intl.DateTimeFormat('fr-FR', {
+          month: 'long',
+          year: 'numeric'
+        }).format(date)
       };
     }
 
-    monthlyData[month].temperatures.push(temperature);
-    monthlyData[month].rainfall += rain;
+    monthlyData[monthKey].temperatures.push(temperature);
+    monthlyData[monthKey].rainfall += rain;
   });
 
-  // Calculate statistics for each month
-  return Object.values(monthlyData).map(month => ({
-    month: month.month,
-    averageTemp: parseFloat((month.temperatures.reduce((a, b) => a + b, 0) / month.temperatures.length).toFixed(1)),
-    minTemp: parseFloat(Math.min(...month.temperatures).toFixed(1)),
-    maxTemp: parseFloat(Math.max(...month.temperatures).toFixed(1)),
-    totalRainfall: parseFloat(month.rainfall.toFixed(1))
-  }));
+  // Calculate statistics for each month and sort by date
+  return Object.values(monthlyData)
+    .sort((a, b) => {
+      // Trier d'abord par année
+      if (a.year !== b.year) {
+        return a.year - b.year;
+      }
+      // Puis par mois
+      return a.month - b.month;
+    })
+    .map(data => ({
+      month: data.monthDisplay,
+      averageTemp: parseFloat((data.temperatures.reduce((a, b) => a + b, 0) / data.temperatures.length).toFixed(1)),
+      minTemp: parseFloat(Math.min(...data.temperatures).toFixed(1)),
+      maxTemp: parseFloat(Math.max(...data.temperatures).toFixed(1)),
+      totalRainfall: parseFloat(data.rainfall.toFixed(1))
+    }));
 };
 
 export { getWeatherFromLastYear };
