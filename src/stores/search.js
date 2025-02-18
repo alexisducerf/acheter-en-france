@@ -16,6 +16,7 @@ export const stores = atom(null);
 export const healthAmenities = atom(null);
 export const educationAmenities = atom(null);
 export const associations = atom(null);
+export const weatherData = atom(null);
 
 export const totalTasks = atom(14);
 export const completedTasks = atom(0);

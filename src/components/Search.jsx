@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks,
    sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults,
-    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks, healthAmenities, stores, associations, educationAmenities} from '../stores/search';
+    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks, healthAmenities, stores, associations, educationAmenities, weatherData} from '../stores/search';
 import {getDestinationsFromLocalStorage} from '../utils/helpers';
 import {getDuration} from '../services/durations';
 import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/georisks';
@@ -13,6 +13,7 @@ import { getStoresByZipCode } from '../services/stores';
 import { getHealthAmenitiesByLatLng } from '../services/health';
 import { getSchoolsByLatLng } from '../services/schools';
 import { getAssociationsByZipCode } from '../services/associations';
+import { getWeatherFromLastYear } from '../services/meteo';
 
 const Search = () => {
   const [formData, setFormData] = useState({
@@ -39,6 +40,7 @@ const Search = () => {
     stores.set(null);
     associations.set(null);
     educationAmenities.set(null);
+    weatherData.set(null);
   }, []);
 
   // First, add a new state for cities
@@ -129,7 +131,8 @@ const Search = () => {
         getStoresByZipCode(formData.postalCode),
         getHealthAmenitiesByLatLng(lat, lng),
         getSchoolsByLatLng(lat, lng),
-        getAssociationsByZipCode(formData.postalCode)
+        getAssociationsByZipCode(formData.postalCode),
+        getWeatherFromLastYear(lat, lng)
       ];
 
       // Group 3: Political and demographic data
@@ -168,11 +171,12 @@ const Search = () => {
       geoGasparRisks.set(geoGasparRisksGeo);
       incrementCompletedTasks();
 
-      const [storesFetch, healthAmenitiesFetch, educationAmenitiesFetch, associationsFetch] = amenityResults;
+      const [storesFetch, healthAmenitiesFetch, educationAmenitiesFetch, associationsFetch, weatherDataFetch] = amenityResults;
       stores.set(storesFetch);
       healthAmenities.set(healthAmenitiesFetch);
       educationAmenities.set(educationAmenitiesFetch);
       associations.set(associationsFetch);
+      weatherData.set(weatherDataFetch);
       incrementCompletedTasks();
 
       const [legislativesResults, presidentResults, legislatives2024Results, inseeDataFetch] = politicalResults;

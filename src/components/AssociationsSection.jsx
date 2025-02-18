@@ -21,7 +21,7 @@ const AssociationsSection = ({ associations = [] }) => {
       <div className="bg-white p-4 rounded-lg border border-gray-200">
         <div className="flex items-center justify-between">
           <h2 className="font-medium text-gray-700">
-            {associations.length} association{associations.length > 1 ? 's' : ''}
+            Les dernières {associations.length} association{associations.length > 1 ? 's' : ''}
           </h2>
           <div className="flex gap-2">
             <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">

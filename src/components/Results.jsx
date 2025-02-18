@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, 
-  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData,  healthAmenities, stores, associations, educationAmenities} from '../stores/search';
+  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData,  healthAmenities, stores, associations, educationAmenities, weatherData } from '../stores/search';
 import Accordions from './Accordions';
 import ProgressBar from './ProgressBar';
 import LoadingSpinner from './Spinner';
@@ -9,6 +9,7 @@ import AmenityCard from './AmenityCard';
 import StoresSection from './StoresSection';
 import SchoolsSection from './SchoolsSection';
 import AssociationsSection from './AssociationsSection';
+import WeatherSection from './WeatherSection';
 
 const Results = () => {
   const $isLoading = useStore(isLoading);
@@ -27,6 +28,7 @@ const Results = () => {
   const $stores = useStore(stores);
   const $associations = useStore(associations);
   const $educationAmenities = useStore(educationAmenities);
+  const $weatherData = useStore(weatherData);
 
   const isDataLoaded = (data) => {
     return data && (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0);
@@ -241,6 +243,12 @@ const Results = () => {
             ))}
           </div>
         ) : <LoadingSpinner />
+      },
+      {
+        title: 'Climat',
+        content: $weatherData ? (
+          <WeatherSection weatherData={$weatherData} />
+        ) : <LoadingSpinner />
       }
     ]);
   }, [
@@ -251,7 +259,12 @@ const Results = () => {
     $presidentElectionResults,
     $legislativesElectionResults,
     $legislativesElectionResults2024,
-    $inseeData
+    $inseeData,
+    $weatherData,
+    $healthAmenities,
+    $stores,
+    $educationAmenities,
+    $associations
   ]);
 
   // Add a check for search being initiated
