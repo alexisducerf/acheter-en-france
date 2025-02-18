@@ -10,6 +10,7 @@ import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/g
 import {getLegislativesElectionResults, getPresidentElectionResults, getLegislativesElectionResults2024} from '../services/political';
 import { getInseeData } from '../services/insee';
 import franceData from '../data/france.json';
+import SelectWithCustomArrow from './SelectWithCustomArrow';
 
 const Search = () => {
   const [formData, setFormData] = useState({
@@ -218,22 +219,21 @@ const Search = () => {
           >
             Ville
           </label>
-          <select
+          <SelectWithCustomArrow
             id="city"
             name="city"
             value={formData.city}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
             required
             disabled={cities.length === 0}
+            placeholder="Saisissez un code postal"
           >
-            <option value="">Saisissez un code postal</option>
             {cities.map((city, index) => (
               <option key={index} value={city.Nom_commune}>
                 {city.Nom_commune}
               </option>
             ))}
-          </select>
+          </SelectWithCustomArrow>
           {cities.length === 0 && formData.postalCode.length === 5 && (
             <p className="text-sm text-gray-500 mt-1">
               Chargement des villes...

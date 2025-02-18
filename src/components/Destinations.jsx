@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import franceData from '../data/france.json';
+import SelectWithCustomArrow from './SelectWithCustomArrow';
 
 const Destinations = () => {
   const [destinations, setDestinations] = useState([]);
@@ -145,7 +146,7 @@ const Destinations = () => {
             />
           </div>
           <div className="flex-1">
-            <select
+            <SelectWithCustomArrow
               value={newDestination.city}
               onChange={(e) => setNewDestination({
                 ...newDestination,
@@ -161,7 +162,7 @@ const Destinations = () => {
                   {city.Nom_commune}
                 </option>
               ))}
-            </select>
+            </SelectWithCustomArrow>
           </div>
         </div>
         <button

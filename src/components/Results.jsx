@@ -28,6 +28,7 @@ const Results = () => {
   };
 
   const [elements, setElements] = useState([]);
+  const [selectedValue, setSelectedValue] = useState('');
 
   useEffect(() => {
     setElements([
