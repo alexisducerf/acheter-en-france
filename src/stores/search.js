@@ -14,8 +14,10 @@ export const legislativesElectionResults2024 = atom(null);
 export const inseeData = atom(null);
 export const stores = atom(null);
 export const healthAmenities = atom(null);
+export const educationAmenities = atom(null);
+export const associations = atom(null);
 
-export const totalTasks = atom(12);
+export const totalTasks = atom(14);
 export const completedTasks = atom(0);
 
 export const incrementCompletedTasks = () => {

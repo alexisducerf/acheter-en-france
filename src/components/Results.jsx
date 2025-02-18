@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, 
-  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData, totalTasks, completedTasks, healthAmenities, stores} from '../stores/search';
+  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData,  healthAmenities, stores, associations, educationAmenities} from '../stores/search';
 import Accordions from './Accordions';
 import ProgressBar from './ProgressBar';
 import LoadingSpinner from './Spinner';
 import AmenityCard from './AmenityCard';
 import StoresSection from './StoresSection';
+import SchoolsSection from './SchoolsSection';
+import AssociationsSection from './AssociationsSection';
 
 const Results = () => {
   const $isLoading = useStore(isLoading);
@@ -23,6 +25,8 @@ const Results = () => {
   const $inseeData = useStore(inseeData);
   const $healthAmenities = useStore(healthAmenities);
   const $stores = useStore(stores);
+  const $associations = useStore(associations);
+  const $educationAmenities = useStore(educationAmenities);
 
   const isDataLoaded = (data) => {
     return data && (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0);
@@ -84,6 +88,18 @@ const Results = () => {
         title: 'Commerces',
         content: $stores ? (
           <StoresSection stores={$stores} />
+        ) : <LoadingSpinner />
+      }, 
+      {
+        title: 'Établissements scolaires',
+        content: $educationAmenities ? (
+          <SchoolsSection schools={$educationAmenities} />
+        ) : <LoadingSpinner />
+      },
+      {
+        title: 'Associations',
+        content: $associations ? (
+          <AssociationsSection associations={$associations} />
         ) : <LoadingSpinner />
       },
       {

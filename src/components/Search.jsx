@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks,
    sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults,
-    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks, healthAmenities, stores} from '../stores/search';
+    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks, healthAmenities, stores, associations, educationAmenities} from '../stores/search';
 import {getDestinationsFromLocalStorage} from '../utils/helpers';
 import {getDuration} from '../services/durations';
-import { getLatLngFromZipCode } from '../services/geolocation';
-import { getCodeInsee } from '../services/insee';
 import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/georisks';
 import {getLegislativesElectionResults, getPresidentElectionResults, getLegislativesElectionResults2024} from '../services/political';
 import { getInseeData } from '../services/insee';
@@ -13,6 +11,8 @@ import franceData from '../data/france.json';
 import SelectWithCustomArrow from './SelectWithCustomArrow';
 import { getStoresByZipCode } from '../services/stores';
 import { getHealthAmenitiesByLatLng } from '../services/health';
+import { getSchoolsByLatLng } from '../services/schools';
+import { getAssociationsByZipCode } from '../services/associations';
 
 const Search = () => {
   const [formData, setFormData] = useState({
@@ -37,6 +37,8 @@ const Search = () => {
     inseeData.set(null);
     healthAmenities.set(null);
     stores.set(null);
+    associations.set(null);
+    educationAmenities.set(null);
   }, []);
 
   // First, add a new state for cities
@@ -55,7 +57,6 @@ const Search = () => {
           });
           const data = await response.json();
           if (response.ok) {
-            console.log('City fetch success:', data);
             if (Array.isArray(data.cities)) {
               setCities(data.cities);
               // Set the first city as default if available
@@ -157,6 +158,14 @@ const Search = () => {
       healthAmenities.set(healthAmenitiesFetch);
       incrementCompletedTasks();
 
+      const educationAmenitiesFetch = await getSchoolsByLatLng(lat, lng);
+      educationAmenities.set(educationAmenitiesFetch);
+      incrementCompletedTasks();
+
+      const associationsFetch = await getAssociationsByZipCode(formData.postalCode);
+      associations.set(associationsFetch);
+      incrementCompletedTasks();
+
       const legislativesElectionResultsFetch = await getLegislativesElectionResults(codeInseeFromPostalCode);
       legislativesElectionResults.set(legislativesElectionResultsFetch);
       incrementCompletedTasks();
@@ -220,7 +229,6 @@ const Search = () => {
           />
         </div>
 
-        {/* Replace the city input with this select element */}
         <div className="space-y-2">
           <label 
             htmlFor="city" 

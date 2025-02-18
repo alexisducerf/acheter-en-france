@@ -53,8 +53,6 @@ const getStoresByZipCode = (zipCode) => {
       return response.json();
     })
     .then(data => {
-      console.log('Stores data:', data);
-
       // Process and return the results
       return processResults(data);
     })
@@ -98,8 +96,6 @@ const processResults = (data) => {
   }
 
   // Log pour debug
-  console.log(`Processed ${stores.length} stores from ${data.elements.length} elements`);
-
   return stores;
 }
 
