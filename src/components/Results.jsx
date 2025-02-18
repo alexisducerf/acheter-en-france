@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, 
-  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData,  healthAmenities, stores, associations, educationAmenities, weatherData } from '../stores/search';
+  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData,  healthAmenities, stores, associations, educationAmenities, weatherData, serviceErrors } from '../stores/search';
 import Accordions from './Accordions';
 import ProgressBar from './ProgressBar';
 import LoadingSpinner from './Spinner';
@@ -29,12 +29,24 @@ const Results = () => {
   const $associations = useStore(associations);
   const $educationAmenities = useStore(educationAmenities);
   const $weatherData = useStore(weatherData);
+  const $serviceErrors = useStore(serviceErrors);
 
   const isDataLoaded = (data) => {
     return data && (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0);
   };
 
   const [elements, setElements] = useState([]);
+
+  const renderContent = (key, content, error) => {
+    if (error) {
+      return (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600">{error}</p>
+        </div>
+      );
+    }
+    return content;
+  };
 
   useEffect(() => {
     setElements([
@@ -73,18 +85,22 @@ const Results = () => {
       },
       {
         title: 'Équipements de santé',
-        content: $healthAmenities ? (
-          <div className="space-y-4">
-            <p className="font-medium text-gray-700">
-              {$healthAmenities.length} équipement{$healthAmenities.length > 1 ? 's' : ''} de santé
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {$healthAmenities.map((amenity, i) => (
-                <AmenityCard key={i} amenity={amenity} />
-              ))}
+        content: renderContent(
+          'health',
+          $healthAmenities ? (
+            <div className="space-y-4">
+              <p className="font-medium text-gray-700">
+                {$healthAmenities.length} équipement{$healthAmenities.length > 1 ? 's' : ''} de santé
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {$healthAmenities.map((amenity, i) => (
+                  <AmenityCard key={i} amenity={amenity} />
+                ))}
+              </div>
             </div>
-          </div>
-        ) : <LoadingSpinner />
+          ) : <LoadingSpinner />,
+          $serviceErrors['health']
+        )
       },
       {
         title: 'Commerces',
@@ -264,7 +280,8 @@ const Results = () => {
     $healthAmenities,
     $stores,
     $educationAmenities,
-    $associations
+    $associations,
+    $serviceErrors
   ]);
 
   // Add a check for search being initiated

@@ -88,16 +88,13 @@ const getHealthAmenitiesByLatLng = (lat, lng) => {
   return fetch(apiUrl)
     .then(response => {
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Erreur lors de la récupération des données (${response.status})`);
       }
       return response.json();
     })
-    .then(data => {
-      // Process and return the results
-      return processResults(data);
-    })
+    .then(data => processResults(data))
     .catch(error => {
-      console.error('Error fetching health amenities:', error);
+      setServiceError('health', `Impossible de charger les équipements de santé: ${error.message}`);
       return [];
     });
 }

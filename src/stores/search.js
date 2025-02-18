@@ -21,6 +21,18 @@ export const weatherData = atom(null);
 export const totalTasks = atom(14);
 export const completedTasks = atom(0);
 
+// Ajouter un nouveau store pour les erreurs spécifiques
+export const serviceErrors = atom({});
+
+// Fonction helper pour enregistrer les erreurs
+export const setServiceError = (service, error) => {
+  const currentErrors = serviceErrors.get();
+  serviceErrors.set({
+    ...currentErrors,
+    [service]: error
+  });
+};
+
 export const incrementCompletedTasks = () => {
   completedTasks.set(completedTasks.get() + 1);
 };
