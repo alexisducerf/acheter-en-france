@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useStore } from '@nanostores/react';
-import { getLatLngFromZipCode } from '../services/geolocation';
+import franceData from '../data/france.json';
 
 const Destinations = () => {
   const [destinations, setDestinations] = useState([]);
@@ -10,7 +9,9 @@ const Destinations = () => {
     coordinates: null
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [cities, setCities] = useState([]);
 
+  // Load saved destinations on mount
   useEffect(() => {
     const savedDestinations = localStorage.getItem('savedDestinations');
     if (savedDestinations) {
@@ -18,24 +19,68 @@ const Destinations = () => {
     }
   }, []);
 
+  // Save destinations when they change
   useEffect(() => {
     localStorage.setItem('savedDestinations', JSON.stringify(destinations));
   }, [destinations]);
+
+  // Handle postal code changes and find matching cities
+  useEffect(() => {
+    if (newDestination.postalCode.length === 5) {
+      const matchingCities = franceData.filter(
+        city => String(city.Code_postal) === newDestination.postalCode
+      );
+      setCities(matchingCities);
+      
+      // Sélectionner automatiquement la première ville si c'est la seule
+      if (matchingCities.length > 0) {
+        const cityData = matchingCities[0];
+        const [lat, lng] = cityData.coordonnees_gps.split(', ').map(Number);
+        
+        setNewDestination(prev => ({
+          ...prev,
+          city: cityData.Nom_commune,
+          coordinates: { lat, lng }
+        }));
+      }
+    } else {
+      setCities([]);
+      setNewDestination(prev => ({ 
+        ...prev, 
+        city: '',
+        coordinates: null 
+      }));
+    }
+  }, [newDestination.postalCode]);
 
   const handleAddDestination = async (e) => {
     e.preventDefault();
     if (newDestination.city && newDestination.postalCode) {
       setIsLoading(true);
       try {
-        const coordinates = await getLatLngFromZipCode(newDestination.postalCode);
+        // Find city data in france.json
+        const cityData = franceData.find(
+          city => city.Code_postal === parseInt(newDestination.postalCode) && 
+                 city.Nom_commune === newDestination.city
+        );
+
+        if (!cityData) {
+          throw new Error('Ville non trouvée');
+        }
+
+        // Extract coordinates
+        const [lat, lng] = cityData.coordonnees_gps.split(', ').map(Number);
+        
         const destinationWithCoords = {
           ...newDestination,
-          coordinates
+          coordinates: { lat, lng }
         };
+
         setDestinations([...destinations, destinationWithCoords]);
         setNewDestination({ city: '', postalCode: '', coordinates: null });
+        setCities([]);
       } catch (error) {
-        console.error('Erreur lors de la récupération des coordonnées:', error);
+        console.error('Erreur lors de l\'ajout de la destination:', error);
       } finally {
         setIsLoading(false);
       }
@@ -83,20 +128,6 @@ const Destinations = () => {
 
       <form onSubmit={handleAddDestination} className="space-y-4">
         <div className="flex space-x-4">
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Ville"
-              value={newDestination.city}
-              onChange={(e) => setNewDestination({
-                ...newDestination,
-                city: e.target.value
-              })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-              disabled={isLoading}
-            />
-          </div>
           <div className="w-32">
             <input
               type="text"
@@ -112,6 +143,25 @@ const Destinations = () => {
               required
               disabled={isLoading}
             />
+          </div>
+          <div className="flex-1">
+            <select
+              value={newDestination.city}
+              onChange={(e) => setNewDestination({
+                ...newDestination,
+                city: e.target.value
+              })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              required
+              disabled={cities.length === 0 || isLoading}
+            >
+              <option value="">Saisissez un code postal</option>
+              {cities.map((city, index) => (
+                <option key={index} value={city.Nom_commune}>
+                  {city.Nom_commune}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
         <button

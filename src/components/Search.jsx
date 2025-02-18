@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks,
    sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults,
     legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks} from '../stores/search';
@@ -9,88 +9,160 @@ import { getCodeInsee } from '../services/insee';
 import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/georisks';
 import {getLegislativesElectionResults, getPresidentElectionResults, getLegislativesElectionResults2024} from '../services/political';
 import { getInseeData } from '../services/insee';
+import franceData from '../data/france.json';
 
 const Search = () => {
   const [formData, setFormData] = useState({
     postalCode: '',
     city: ''
   });
+
+  // reset all the stores
+  useEffect(() => {
+    completedTasks.set(0);
+    isLoaded.set(false);
+    isLoading.set(false);
+    hasErrors.set(false);
+    durationPerDestination.set([]);
+    codeInsee.set('');
+    geoGasparRisks.set(null);
+    sismicRisks.set(null);
+    soilPollution.set(null);
+    legislativesElectionResults.set(null);
+    presidentElectionResults.set(null);
+    legislativesElectionResults2024.set(null);
+    inseeData.set(null);
+  }, []);
+
+  // First, add a new state for cities
+  const [cities, setCities] = useState([]);
+
+  // Modify the useEffect that handles postal code changes
+  useEffect(() => {
+    const postalCode = formData.postalCode;
+      
+    if(postalCode.length === 5) {        
+      const fetchCity = async () => {
+        try {
+          const response = await fetch('/.netlify/functions/getCityFromZipcode', {
+            method: 'POST',
+            body: JSON.stringify({ postalCode }),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            console.log('City fetch success:', data);
+            if (Array.isArray(data.cities)) {
+              setCities(data.cities);
+              // Set the first city as default if available
+              if (data.cities.length > 0) {
+                setFormData(prev => ({
+                  ...prev,
+                  city: data.cities[0].Nom_commune
+                }));
+              }
+            }
+          } else {
+            console.error('City fetch error:', data);
+            setCities([]);
+          }
+        } catch (error) {
+          console.error('City fetch error:', error);
+          setCities([]);
+        }
+      };
+      fetchCity();
+    } else {
+      // Reset cities when postal code is not complete
+      setCities([]);
+      setFormData(prev => ({ ...prev, city: '' }));
+    }
+  }, [formData.postalCode]);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     completedTasks.set(0);
 
-      // Scroll to results
-      setTimeout(() => {
-        document.getElementById('search-results')?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }, 100);
+    setTimeout(() => {
+      document.getElementById('search-results')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }, 100);
     
     try {
       isLoaded.set(false);
       isLoading.set(true);
-      hasErrors.set(false);
+      hasErrors.set(false);    
 
-      const cityCoordinates = await getLatLngFromZipCode(formData.postalCode);
-      incrementCompletedTasks(); 
+      // Rechercher dans france.json les données de la ville
+      const cityData = franceData.find(city => 
+        city.Code_postal === parseInt(formData.postalCode) && 
+        city.Nom_commune === formData.city
+      );
+
+      if (!cityData) {
+        throw new Error('Ville non trouvée');
+      }
+
+      // Extraire lat/lng des coordonnées GPS
+      const [lat, lng] = cityData.coordonnees_gps.split(', ').map(Number);
+      const codeInseeFromPostalCode = cityData.Code_commune_INSEE;
+      console.log('Code INSEE:', codeInseeFromPostalCode);
+      console.log('Coordinates:', lat, lng);
+    
+      codeInsee.set(codeInseeFromPostalCode);
+      incrementCompletedTasks();
 
       const destinations = getDestinationsFromLocalStorage();
-      incrementCompletedTasks(); 
+      incrementCompletedTasks();
 
-      const codeInseeFromPostalCode = await getCodeInsee(formData.postalCode, formData.city); 
-      incrementCompletedTasks(); 
 
-      const sismicRisksGeo = await getSismicRisks(formData.city, codeInseeFromPostalCode); 
-      incrementCompletedTasks(); 
+      durationPerDestination.set([]);
+      const durations = await Promise.all(
+        destinations.map(async (dest) =>
+          getDuration(
+            lat,
+            lng,
+            dest.coordinates.lat,
+            dest.coordinates.lng,
+            dest.city,
+            dest.postalCode
+          )
+        )
+      );
+
+      durationPerDestination.set(durations);
+      incrementCompletedTasks();
+
+      const sismicRisksGeo = await getSismicRisks(formData.city, codeInseeFromPostalCode);
+      sismicRisks.set(sismicRisksGeo);
+      incrementCompletedTasks();
 
       const soilPollutionGeo = await getSoilPollution(formData.city, codeInseeFromPostalCode);
-      incrementCompletedTasks(); 
+      soilPollution.set(soilPollutionGeo);
+      incrementCompletedTasks();
 
       const geoGasparRisksGeo = await getGeoGasparRisks(formData.city, codeInseeFromPostalCode);
-      incrementCompletedTasks(); 
+      geoGasparRisks.set(geoGasparRisksGeo);
+      incrementCompletedTasks();
 
       const legislativesElectionResultsFetch = await getLegislativesElectionResults(codeInseeFromPostalCode);
-      incrementCompletedTasks(); 
+      legislativesElectionResults.set(legislativesElectionResultsFetch);
+      incrementCompletedTasks();
 
       const presidentElectionResultsFetch = await getPresidentElectionResults(codeInseeFromPostalCode);
-      incrementCompletedTasks(); 
+      presidentElectionResults.set(presidentElectionResultsFetch);
+      incrementCompletedTasks();
 
       const legislativesElectionResults2024Fetch = await getLegislativesElectionResults2024(codeInseeFromPostalCode);
-      incrementCompletedTasks(); 
+      legislativesElectionResults2024.set(legislativesElectionResults2024Fetch);
+      incrementCompletedTasks();
 
       const inseeDataFetch = await getInseeData(codeInseeFromPostalCode);
-      incrementCompletedTasks(); 
-      
-      durationPerDestination.set([]);
-      codeInsee.set(codeInseeFromPostalCode);
-      sismicRisks.set(sismicRisksGeo);
-      soilPollution.set(soilPollutionGeo);
-      geoGasparRisks.set(geoGasparRisksGeo);
-      legislativesElectionResults.set(legislativesElectionResultsFetch);
-      presidentElectionResults.set(presidentElectionResultsFetch);
-      legislativesElectionResults2024.set(legislativesElectionResults2024Fetch);
+      incrementCompletedTasks();
       inseeData.set(inseeDataFetch);
-      
-      // Use Promise.all to handle all durations concurrently
-      const durations = await Promise.all(
-        destinations.map(async (dest) => {
-          return await getDuration(
-            cityCoordinates.lat, 
-            cityCoordinates.lng, 
-            dest.coordinates.lat, 
-            dest.coordinates.lng, 
-            dest.city, 
-            dest.postalCode
-          );
-        })
-      );
-      
-      // Set all durations at once
-      durationPerDestination.set(durations);
-      
+
       isLoaded.set(true);
 
     } catch (error) {
@@ -138,6 +210,7 @@ const Search = () => {
           />
         </div>
 
+        {/* Replace the city input with this select element */}
         <div className="space-y-2">
           <label 
             htmlFor="city" 
@@ -145,16 +218,27 @@ const Search = () => {
           >
             Ville
           </label>
-          <input
-            type="text"
+          <select
             id="city"
             name="city"
             value={formData.city}
             onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            placeholder="Paris"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
             required
-          />
+            disabled={cities.length === 0}
+          >
+            <option value="">Saisissez un code postal</option>
+            {cities.map((city, index) => (
+              <option key={index} value={city.Nom_commune}>
+                {city.Nom_commune}
+              </option>
+            ))}
+          </select>
+          {cities.length === 0 && formData.postalCode.length === 5 && (
+            <p className="text-sm text-gray-500 mt-1">
+              Chargement des villes...
+            </p>
+          )}
         </div>
 
         <button

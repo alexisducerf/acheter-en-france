@@ -3,8 +3,8 @@ import axios from 'axios';
 export const getLegislativesElectionResults = async (code_insee) => {
   const sheetID = "1P7BQ5xJO89Xz_Uz_rWMIXyf888QlvU2FHatVtFGLzl8";
 
-  const dept = code_insee.substring(0, 2);
-  const commune = code_insee.substring(2);
+  const dept = code_insee.toString().substring(0, 2);
+  const commune = code_insee.toString().substring(2);
 
   const query = encodeURIComponent(`SELECT A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
     AA, AB, AC, AD, AE, AF, AG, AH, AI, AJ, AK, AL, AM, AN, AO, AP, AQ, AR, AS, AT, AU, AV, AW, AX, AY, AZ,
@@ -187,8 +187,8 @@ export const getLegislativesElectionResults2024 = async (code_insee) => {
 export const getPresidentElectionResults = async (code_insee) => {
   const sheetID = "1x2HAADOfAg_Yx4TtHfrcTBe070E5W-iVpUi2oJV5FUQ";
 
-  const dept = code_insee.substring(0, 2);
-  const commune = code_insee.substring(2);
+  const dept = code_insee.toString().substring(0, 2);
+  const commune = code_insee.toString().substring(2);
 
   // Update query to include all columns A to CY
   const query = encodeURIComponent(
