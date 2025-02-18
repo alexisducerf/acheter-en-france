@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, 
-  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData, totalTasks, completedTasks} from '../stores/search';
+  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData, totalTasks, completedTasks, healthAmenities, stores} from '../stores/search';
 import Accordions from './Accordions';
 import ProgressBar from './ProgressBar';
 import LoadingSpinner from './Spinner';
+import AmenityCard from './AmenityCard';
+import StoresSection from './StoresSection';
 
 const Results = () => {
-
   const $isLoading = useStore(isLoading);
   const $isLoaded = useStore(isLoaded);
   const $hasErrors = useStore(hasErrors);
@@ -20,15 +21,14 @@ const Results = () => {
   const $presidentElectionResults = useStore(presidentElectionResults);
   const $legislativesElectionResults2024 = useStore(legislativesElectionResults2024);
   const $inseeData = useStore(inseeData);
-  const $totalTasks = useStore(totalTasks);
-  const $completedTasks = useStore(completedTasks);
+  const $healthAmenities = useStore(healthAmenities);
+  const $stores = useStore(stores);
 
   const isDataLoaded = (data) => {
     return data && (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0);
   };
 
   const [elements, setElements] = useState([]);
-  const [selectedValue, setSelectedValue] = useState('');
 
   useEffect(() => {
     setElements([
@@ -64,6 +64,27 @@ const Results = () => {
             <LoadingSpinner />
           </div>
         )
+      },
+      {
+        title: 'Équipements de santé',
+        content: $healthAmenities ? (
+          <div className="space-y-4">
+            <p className="font-medium text-gray-700">
+              {$healthAmenities.length} équipement{$healthAmenities.length > 1 ? 's' : ''} de santé
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {$healthAmenities.map((amenity, i) => (
+                <AmenityCard key={i} amenity={amenity} />
+              ))}
+            </div>
+          </div>
+        ) : <LoadingSpinner />
+      },
+      {
+        title: 'Commerces',
+        content: $stores ? (
+          <StoresSection stores={$stores} />
+        ) : <LoadingSpinner />
       },
       {
         title: 'Élections',
@@ -231,7 +252,6 @@ const Results = () => {
           {$isLoading && (
             <div className="text-gray-600 mb-4">
               <p>Chargement des données...</p>
-              {/*<p className="text-sm mt-1">Progression : {$completedTasks}/{$totalTasks} tâches complétées</p>*/}
             </div>
           )}
           {$hasErrors && <p className="text-red-600 mb-4">{$hasErrors}</p>}

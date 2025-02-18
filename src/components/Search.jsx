@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks,
    sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults,
-    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks} from '../stores/search';
+    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks, healthAmenities, stores} from '../stores/search';
 import {getDestinationsFromLocalStorage} from '../utils/helpers';
 import {getDuration} from '../services/durations';
 import { getLatLngFromZipCode } from '../services/geolocation';
@@ -11,6 +11,8 @@ import {getLegislativesElectionResults, getPresidentElectionResults, getLegislat
 import { getInseeData } from '../services/insee';
 import franceData from '../data/france.json';
 import SelectWithCustomArrow from './SelectWithCustomArrow';
+import { getStoresByZipCode } from '../services/stores';
+import { getHealthAmenitiesByLatLng } from '../services/health';
 
 const Search = () => {
   const [formData, setFormData] = useState({
@@ -33,6 +35,8 @@ const Search = () => {
     presidentElectionResults.set(null);
     legislativesElectionResults2024.set(null);
     inseeData.set(null);
+    healthAmenities.set(null);
+    stores.set(null);
   }, []);
 
   // First, add a new state for cities
@@ -109,15 +113,12 @@ const Search = () => {
       // Extraire lat/lng des coordonnées GPS
       const [lat, lng] = cityData.coordonnees_gps.split(', ').map(Number);
       const codeInseeFromPostalCode = cityData.Code_commune_INSEE;
-      console.log('Code INSEE:', codeInseeFromPostalCode);
-      console.log('Coordinates:', lat, lng);
-    
+          
       codeInsee.set(codeInseeFromPostalCode);
       incrementCompletedTasks();
 
       const destinations = getDestinationsFromLocalStorage();
       incrementCompletedTasks();
-
 
       durationPerDestination.set([]);
       const durations = await Promise.all(
@@ -146,6 +147,14 @@ const Search = () => {
 
       const geoGasparRisksGeo = await getGeoGasparRisks(formData.city, codeInseeFromPostalCode);
       geoGasparRisks.set(geoGasparRisksGeo);
+      incrementCompletedTasks();
+
+      const storesFetch = await getStoresByZipCode(formData.postalCode);
+      stores.set(storesFetch);
+      incrementCompletedTasks();
+
+      const healthAmenitiesFetch = await getHealthAmenitiesByLatLng(lat, lng);
+      healthAmenities.set(healthAmenitiesFetch);
       incrementCompletedTasks();
 
       const legislativesElectionResultsFetch = await getLegislativesElectionResults(codeInseeFromPostalCode);
