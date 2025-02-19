@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks,
    sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults,
-    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks, healthAmenities, stores, associations, educationAmenities, weatherData} from '../stores/search';
+    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks, healthAmenities, stores, associations, educationAmenities, weatherData, waterData} from '../stores/search';
 import {getDestinationsFromLocalStorage} from '../utils/helpers';
 import {getDuration} from '../services/durations';
 import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/georisks';
@@ -14,34 +14,13 @@ import { getHealthAmenitiesByLatLng } from '../services/health';
 import { getSchoolsByLatLng } from '../services/schools';
 import { getAssociationsByZipCode } from '../services/associations';
 import { getWeatherFromLastYear } from '../services/meteo';
+import { tapWaterAnalysis } from '../services/water'; 
 
 const Search = () => {
   const [formData, setFormData] = useState({
     postalCode: '',
     city: ''
   });
-
-  // reset all the stores
-  useEffect(() => {
-    completedTasks.set(0);
-    isLoaded.set(false);
-    isLoading.set(false);
-    hasErrors.set(false);
-    durationPerDestination.set([]);
-    codeInsee.set('');
-    geoGasparRisks.set(null);
-    sismicRisks.set(null);
-    soilPollution.set(null);
-    legislativesElectionResults.set(null);
-    presidentElectionResults.set(null);
-    legislativesElectionResults2024.set(null);
-    inseeData.set(null);
-    healthAmenities.set(null);
-    stores.set(null);
-    associations.set(null);
-    educationAmenities.set(null);
-    weatherData.set(null);
-  }, []);
 
   // First, add a new state for cities
   const [cities, setCities] = useState([]);
@@ -108,6 +87,7 @@ const Search = () => {
     associations.set(null);
     educationAmenities.set(null);
     weatherData.set(null);
+    waterData.set(null);
 
     // Scroll to results after a short delay
     setTimeout(() => {
@@ -146,7 +126,8 @@ const Search = () => {
       const geoRequests = [
         getSismicRisks(formData.city, codeInseeFromPostalCode),
         getSoilPollution(formData.city, codeInseeFromPostalCode),
-        getGeoGasparRisks(formData.city, codeInseeFromPostalCode)
+        getGeoGasparRisks(formData.city, codeInseeFromPostalCode),
+        tapWaterAnalysis(codeInseeFromPostalCode)
       ];
       
       // Group 2: Amenities data
@@ -188,10 +169,11 @@ const Search = () => {
       ]);
 
       // Update stores with results
-      const [sismicRisksGeo, soilPollutionGeo, geoGasparRisksGeo] = geoResults;
+      const [sismicRisksGeo, soilPollutionGeo, geoGasparRisksGeo, tapWaterAnalysisGeo] = geoResults;
       sismicRisks.set(sismicRisksGeo);
       soilPollution.set(soilPollutionGeo);
       geoGasparRisks.set(geoGasparRisksGeo);
+      waterData.set(tapWaterAnalysisGeo);
       incrementCompletedTasks();
 
       const [storesFetch, healthAmenitiesFetch, educationAmenitiesFetch, associationsFetch, weatherDataFetch] = amenityResults;

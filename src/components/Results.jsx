@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks, sismicRisks, soilPollution, 
-  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData,  healthAmenities, stores, associations, educationAmenities, weatherData, serviceErrors } from '../stores/search';
+  legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData,  healthAmenities, stores, associations, 
+  educationAmenities, weatherData, serviceErrors, waterData } from '../stores/search';
 import Accordions from './Accordions';
 import ProgressBar from './ProgressBar';
 import LoadingSpinner from './Spinner';
@@ -29,6 +30,7 @@ const Results = () => {
   const $associations = useStore(associations);
   const $educationAmenities = useStore(educationAmenities);
   const $weatherData = useStore(weatherData);
+  const $waterData = useStore(waterData);
   const $serviceErrors = useStore(serviceErrors);
 
   const isDataLoaded = (data) => {
@@ -82,6 +84,41 @@ const Results = () => {
             <LoadingSpinner />
           </div>
         )
+      },
+      {
+        title: 'Eau potable',
+        content: $waterData ? (
+          <div className="space-y-4">
+            <p className="font-medium text-gray-700">
+              Dernières 100 analyse{$waterData.total > 1 ? 's' : ''} d'eau potable sur {$waterData.total}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {$waterData.results.map((result, i) => (
+                <div key={i} className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <h3 className="text-lg font-semibold text-gray-700">
+                  {result.parameter}
+                  </h3>
+                  <div className="space-y-2">
+                    <p>
+                      <strong>Valeur:</strong> {result.value} {result.unit}
+                    </p>
+                    {result.limit && (
+                    <p>
+                      <strong>Limite:</
+                      strong> {result.limit} 
+                    </p>)}
+                    <p>
+                      <strong>Date:</strong> {result.date}
+                    </p>
+                    <p>
+                      <strong>Statut:</strong> {result.status}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : <LoadingSpinner />
       },
       {
         title: 'Équipements de santé',

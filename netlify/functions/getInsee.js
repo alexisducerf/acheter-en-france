@@ -27,6 +27,8 @@ export const handler = async (event, context) => {
 
     const url = `https://www.insee.fr/fr/statistiques/2011101?geo=COM-${code_insee}`;
 
+    console.log('Fetching INSEE data from:', url);
+
     const { data: html } = await axios.get(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'

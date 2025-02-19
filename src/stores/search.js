@@ -17,14 +17,13 @@ export const healthAmenities = atom(null);
 export const educationAmenities = atom(null);
 export const associations = atom(null);
 export const weatherData = atom(null);
+export const waterData = atom(null);
 
 export const totalTasks = atom(14);
 export const completedTasks = atom(0);
 
-// Ajouter un nouveau store pour les erreurs spécifiques
 export const serviceErrors = atom({});
 
-// Fonction helper pour enregistrer les erreurs
 export const setServiceError = (service, error) => {
   const currentErrors = serviceErrors.get();
   serviceErrors.set({
