@@ -5,7 +5,7 @@ exports.handler = async (event) => {
 
   // Find all cities matching the postal code
   const matches = franceData.filter(entry =>
-    String(entry.Code_postal) === postalCode
+    entry.Code_postal == postalCode
   );
 
   return {
