@@ -62,9 +62,6 @@ const getSchoolsByLatLng = (lat, lng) => {
 const processResults = (data) => {
   const schools = [];
 
-  console.log(data);
-  
-
   if (data && data.elements) {
     data.elements.forEach(element => {
       if (element.tags) {

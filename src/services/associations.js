@@ -16,8 +16,6 @@ const getAssociationsByZipCode = async (zipCode) => {
       return { total: 0, associations: [] };
     }
 
-    console.log('Associations data:', data);
-
     // Transform the data
     const processedAssociations = data.results.map(association => ({
       id: association.id,

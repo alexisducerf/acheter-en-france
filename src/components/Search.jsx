@@ -148,8 +148,6 @@ const Search = () => {
         getSoilPollution(formData.city, codeInseeFromPostalCode),
         getGeoGasparRisks(formData.city, codeInseeFromPostalCode)
       ];
-
-      console.log('code postal', formData.postalCode);
       
       // Group 2: Amenities data
       const amenityRequests = [
