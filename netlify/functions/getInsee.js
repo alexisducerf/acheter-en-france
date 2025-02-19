@@ -25,13 +25,6 @@ export const handler = async (event, context) => {
   try {
     const { code_insee } = JSON.parse(event.body);
 
-    let insee = String(code_insee);
-
-
-    //if the code insee is only 4 digits, add a leading zero
-    if (insee.length === 4) {
-      insee = `0${code_insee}`;
-    }
 
     const url = `https://www.insee.fr/fr/statistiques/2011101?geo=COM-${insee}`;
 

@@ -1,7 +1,7 @@
 const getAssociationsByZipCode = async (zipCode) => {
   try {
     // Fetch data from API
-    const apiUrl = `https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/ref-france-association-repertoire-national/records?where=pc_address_asso%3D${zipCode}&order_by=creation_date%20DESC&limit=100`;
+    const apiUrl = `https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/ref-france-association-repertoire-national/records?where=pc_address_asso%20like%20%22${zipCode}%22&order_by=creation_date%20DESC&limit=100`;
     const response = await fetch(apiUrl);
 
     if (!response.ok) {
@@ -13,9 +13,8 @@ const getAssociationsByZipCode = async (zipCode) => {
     // Process data directly in the fetch function
     if (!data || !data.results) {
       console.warn('No associations found for this zip code');
-      return [];
+      return { total: 0, associations: [] };
     }
-
 
     console.log('Associations data:', data);
 
@@ -38,12 +37,15 @@ const getAssociationsByZipCode = async (zipCode) => {
       lastUpdate: new Date(association.update_date).toLocaleDateString('fr-FR')
     }));
 
-    // Return just the processed array
-    return processedAssociations;
+    // Return object with total count and processed associations
+    return {
+      total: data.total_count || 0,
+      associations: processedAssociations
+    };
 
   } catch (error) {
     console.error('Erreur lors de la récupération des données:', error);
-    return [];
+    return { total: 0, associations: [] };
   }
 };
 

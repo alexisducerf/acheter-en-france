@@ -129,7 +129,15 @@ const Search = () => {
       }
 
       const [lat, lng] = cityData.coordonnees_gps.split(', ').map(Number);
-      const codeInseeFromPostalCode = cityData.Code_commune_INSEE;
+      let codeInseeFromPostalCode = cityData.Code_commune_INSEE;
+
+      codeInseeFromPostalCode = String(codeInseeFromPostalCode);
+
+
+      //if the code insee is only 4 digits, add a leading zero
+      if (codeInseeFromPostalCode.length === 4) {
+        codeInseeFromPostalCode = `0${codeInseeFromPostalCode}`;
+      }
       
       codeInsee.set(codeInseeFromPostalCode);
       incrementCompletedTasks();
@@ -141,6 +149,8 @@ const Search = () => {
         getGeoGasparRisks(formData.city, codeInseeFromPostalCode)
       ];
 
+      console.log('code postal', formData.postalCode);
+      
       // Group 2: Amenities data
       const amenityRequests = [
         getStoresByZipCode(formData.postalCode),

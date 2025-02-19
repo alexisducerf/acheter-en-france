@@ -117,7 +117,7 @@ const Results = () => {
       {
         title: 'Associations',
         content: $associations ? (
-          <AssociationsSection associations={$associations} />
+          <AssociationsSection associations={$associations.associations} total={$associations.total} />
         ) : <LoadingSpinner />
       },
       {

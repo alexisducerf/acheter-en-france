@@ -28,12 +28,12 @@ export const getInseeData = async (code_insee) => {
     });
 
     if (!response.data) {
-      throw new Error('No data received from INSEE');
+      console.log('No data received from INSEE');
     }
 
     return response.data;
   } catch (error) {
     console.error('Error fetching INSEE data:', error);
-    throw new Error('Failed to fetch INSEE data');
+
   }
 };
