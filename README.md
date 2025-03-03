@@ -58,12 +58,7 @@ A comprehensive web application for researching and analyzing French locations, 
 
 ## Installation 🚀
 
-1. Clone the repository:
-
-```bash
-git clone https://github.com/your-username/buy-in-france.git
-cd buy-in-france
-```
+1. Clone the repository
 
 2. Install dependencies:
 
