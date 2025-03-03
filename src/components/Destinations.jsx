@@ -29,8 +29,11 @@ const Destinations = () => {
   useEffect(() => {
     if (newDestination.postalCode.length === 5) {
       const matchingCities = franceData.filter(
-        city => String(city.Code_postal) === newDestination.postalCode
+        city => String(city.Code_postal).padStart(5, '0') === newDestination.postalCode
       );
+      
+      console.log(matchingCities);
+      
       setCities(matchingCities);
       
       // Sélectionner automatiquement la première ville si c'est la seule
@@ -59,9 +62,12 @@ const Destinations = () => {
     if (newDestination.city && newDestination.postalCode) {
       setIsLoading(true);
       try {
+
+        console.log(city.Code_postal);
+        
         // Find city data in france.json
         const cityData = franceData.find(
-          city => city.Code_postal === parseInt(newDestination.postalCode) && 
+          city => String(city.Code_postal).padStart(5, '0') === newDestination.postalCode && 
                  city.Nom_commune === newDestination.city
         );
 
