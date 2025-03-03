@@ -2,6 +2,8 @@
 
 A comprehensive web application for researching and analyzing French locations, providing detailed information about cities including risks, amenities, political data, and more. Perfect for making informed decisions about where to live or invest in France.
 
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/NideXTC/acheter-en-france)
+
 ## Features ✨
 
 ### Location Management
@@ -58,12 +60,7 @@ A comprehensive web application for researching and analyzing French locations, 
 
 ## Installation 🚀
 
-1. Clone the repository:
-
-```bash
-git clone https://github.com/your-username/buy-in-france.git
-cd buy-in-france
-```
+1. Clone the repository
 
 2. Install dependencies:
 
