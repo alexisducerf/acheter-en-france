@@ -12,5 +12,6 @@ export default defineConfig({
     plugins: [tailwindcss()]
   },
 
-  adapter: netlify()
+  // No netlify/edge-functions in this project: skip the Deno-based edge emulation in `astro dev`
+  adapter: netlify({ devFeatures: { edgeFunctions: false } })
 });

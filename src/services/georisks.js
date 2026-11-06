@@ -64,7 +64,7 @@ const getGeoGasparRisks = async (city, code_insee) => {
 
     if (response.data.results && response.data.results > 0) {
       const risks = response.data.data[0].risques_detail;
-      return risks.map(risk => risk.libelle_risque_long).join(', ')
+      return risks.map(risk => risk.libelle_risque_long);
     }
     return null;
   } catch (error) {

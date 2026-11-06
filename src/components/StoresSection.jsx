@@ -1,4 +1,6 @@
+import { useState } from "react";
 import AmenityCard from "./AmenityCard";
+import { Empty } from "./ui";
 
 const StoresSection = ({ stores }) => {
   // Group stores by category
@@ -55,28 +57,42 @@ const StoresSection = ({ stores }) => {
     'agrarian': 'Matériel agricole'
   };
 
+  const [selected, setSelected] = useState('all');
+
+  if (stores.length === 0) {
+    return <Empty>Aucun commerce référencé dans OpenStreetMap pour cette commune.</Empty>;
+  }
+
+  const label = (category) => categoryTranslations[category] || category;
+  const categories = Object.entries(groupedStores).sort((a, b) => b[1].length - a[1].length);
+  const visible = selected === 'all' ? categories : categories.filter(([category]) => category === selected);
+
+  const pill = (active) =>
+    `rounded-full border px-3 py-1.5 text-sm transition ${
+      active ? 'border-ink bg-ink text-white' : 'border-line bg-surface text-ink-soft hover:border-line-strong'
+    }`;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="font-medium text-gray-700">
-          {stores.length} commerce{stores.length > 1 ? 's' : ''}
-        </p>
+    <div className="space-y-8">
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className={pill(selected === 'all')} onClick={() => setSelected('all')}>
+          Tous <span className="opacity-60">{stores.length}</span>
+        </button>
+        {categories.map(([category, items]) => (
+          <button key={category} type="button" className={pill(selected === category)} onClick={() => setSelected(category)}>
+            {label(category)} <span className="opacity-60">{items.length}</span>
+          </button>
+        ))}
       </div>
-      
-      {Object.entries(groupedStores).map(([category, categoryStores]) => (
-        <div key={category} className="space-y-4">
-          <h3 className="text-lg font-medium text-gray-800 border-b border-gray-200 pb-2">
-            {categoryTranslations[category] || category} ({categoryStores.length})
+
+      {visible.map(([category, categoryStores]) => (
+        <div key={category}>
+          <h3 className="mb-3 flex items-baseline gap-2 text-sm font-semibold text-ink">
+            {label(category)} <span className="font-normal text-muted">{categoryStores.length}</span>
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {categoryStores.map((store, i) => (
-              <AmenityCard 
-                key={i} 
-                amenity={{
-                  ...store,
-                  amenityType: categoryTranslations[store.category] || store.category
-                }} 
-              />
+              <AmenityCard key={i} amenity={{ ...store, amenityType: label(store.category) }} />
             ))}
           </div>
         </div>

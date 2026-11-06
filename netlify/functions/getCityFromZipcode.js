@@ -1,6 +1,6 @@
-const franceData = require('../../src/data/france.json');
+import franceData from '../../src/data/france.json' with { type: 'json' };
 
-exports.handler = async (event) => {
+export const handler = async (event) => {
   const { postalCode } = JSON.parse(event.body);
 
   // Find all cities matching the postal code
