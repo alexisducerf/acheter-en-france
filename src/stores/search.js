@@ -5,6 +5,7 @@ export const isLoaded = atom(false);
 export const hasErrors = atom(false);
 export const durationPerDestination = atom([]);
 export const codeInsee = atom(null);
+export const searchedLocation = atom(null); // { city, postalCode, codeInsee, lat, lng }
 export const sismicRisks = atom(null);
 export const soilPollution = atom(null);
 export const geoGasparRisks = atom(null);

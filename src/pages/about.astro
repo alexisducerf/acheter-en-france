@@ -1,84 +1,65 @@
 ---
-import "../styles/global.css";
 import Layout from "../layouts/Layout.astro";
+
+const sources = [
+  { name: "API Adresse", org: "data.gouv.fr", use: "Géocodage et recherche des communes" },
+  { name: "Géorisques", org: "Ministère de la Transition écologique", use: "Risques GASPAR, zonage sismique, sites et sols pollués" },
+  { name: "Hub'Eau", org: "OFB / BRGM", use: "Contrôle sanitaire de l'eau potable" },
+  { name: "Overpass API", org: "OpenStreetMap", use: "Commerces, équipements de santé, établissements scolaires" },
+  { name: "Répertoire national des associations", org: "Opendatasoft", use: "Associations déclarées dans la commune" },
+  { name: "Dossier complet", org: "INSEE", use: "Statistiques démographiques et socio-économiques" },
+  { name: "Résultats électoraux", org: "Ministère de l'Intérieur", use: "Présidentielle 2022, législatives 2022 et 2024" },
+  { name: "Historical Weather API", org: "Open-Meteo", use: "Températures et précipitations" },
+  { name: "OSRM", org: "Project OSRM", use: "Temps de trajet et distances en voiture" },
+];
 ---
 
-<Layout>
-  <main class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
-      <h1 class="text-3xl font-bold text-gray-900 mb-6">À propos</h1>
+<Layout title="À propos · Où acheter en France">
+  <main class="mx-auto max-w-4xl px-4 pt-12 sm:px-6 lg:pt-20">
+    <p class="eyebrow">À propos</p>
+    <h1 class="mt-4 font-display text-4xl leading-tight font-medium tracking-tight sm:text-5xl">
+      Un outil ouvert pour <span class="italic text-accent">choisir où vivre.</span>
+    </h1>
+    <p class="mt-6 max-w-2xl text-lg leading-relaxed text-ink-soft">
+      « Où Acheter en France » est un projet open source qui aide à prendre une décision
+      éclairée avant un achat immobilier : il rassemble, pour une commune donnée, les
+      données publiques les plus utiles et les présente au même endroit.
+    </p>
 
-      <div class="prose prose-blue max-w-none">
-        <p class="text-lg text-gray-700 mb-6">
-          "Où Acheter en France" est un projet open source qui vous aide à
-          prendre des décisions éclairées pour votre achat immobilier en France.
-          L'application analyse les risques naturels, la pollution des sols et
-          calcule les distances vers vos destinations favorites.
+    <section class="mt-16">
+      <h2 class="font-display text-2xl font-medium tracking-tight">Sources de données</h2>
+      <p class="mt-2 text-sm text-muted">Toutes les données proviennent d'API publiques et ouvertes.</p>
+      <ul class="card mt-6 divide-y divide-line overflow-hidden">
+        {
+          sources.map((source) => (
+            <li class="grid gap-1 px-6 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] sm:gap-6">
+              <div>
+                <p class="font-medium text-ink">{source.name}</p>
+                <p class="text-xs text-muted">{source.org}</p>
+              </div>
+              <p class="text-sm text-ink-soft">{source.use}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="card mt-12 flex flex-col gap-6 p-8 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="font-display text-2xl font-medium tracking-tight">Contribuer</h2>
+        <p class="mt-2 max-w-lg text-ink-soft">
+          Améliorations, signalements de bugs, nouvelles sources de données : toutes les
+          contributions sont les bienvenues.
         </p>
-
-        <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">
-          APIs Utilisées
-        </h2>
-
-        <div class="space-y-4">
-          <div class="border-l-4 border-blue-500 pl-4">
-            <h3 class="font-semibold text-gray-900">
-              API Adresse (data.gouv.fr)
-            </h3>
-            <p class="text-gray-600">Géocodage et recherche d'adresses</p>
-          </div>
-
-          <div class="border-l-4 border-blue-500 pl-4">
-            <h3 class="font-semibold text-gray-900">API Géorisques</h3>
-            <p class="text-gray-600">
-              Données sur les risques naturels, industriels et technologiques
-            </p>
-            <ul class="list-disc list-inside text-gray-600 ml-4">
-              <li>Risques sismiques</li>
-              <li>Pollution des sols</li>
-              <li>Risques Gaspar</li>
-            </ul>
-          </div>
-
-          <div class="border-l-4 border-blue-500 pl-4">
-            <h3 class="font-semibold text-gray-900">
-              OSRM (Open Source Routing Machine)
-            </h3>
-            <p class="text-gray-600">
-              Calcul des itinéraires et des temps de trajet
-            </p>
-          </div>
-        </div>
-
-        <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">
-          Contribution
-        </h2>
-        <p class="text-gray-700 mb-4">
-          Ce projet est open source et disponible sur GitHub. Vous pouvez
-          contribuer en proposant des améliorations, en signalant des bugs ou en
-          suggérant de nouvelles fonctionnalités.
-        </p>
-
-        <a
-          href="https://github.com/alexisducerf/acheter-en-france"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-              clip-rule="evenodd"></path>
-          </svg>
-          <span>Voir le projet sur GitHub</span>
-        </a>
       </div>
-    </div>
+      <a
+        href="https://github.com/alexisducerf/acheter-en-france"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-primary shrink-0"
+      >
+        Voir le projet sur GitHub ↗
+      </a>
+    </section>
   </main>
 </Layout>

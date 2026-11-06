@@ -2,181 +2,155 @@ import { useState, useEffect } from 'react';
 import franceData from '../data/france.json';
 import SelectWithCustomArrow from './SelectWithCustomArrow';
 
+const findCities = (postalCode) =>
+  franceData.filter((city) => String(city.Code_postal).padStart(5, '0') === postalCode);
+
+const parseCoordinates = (cityData) => {
+  const [lat, lng] = cityData.coordonnees_gps.split(', ').map(Number);
+  return { lat, lng };
+};
+
 const Destinations = () => {
   const [destinations, setDestinations] = useState([]);
-  const [newDestination, setNewDestination] = useState({
-    city: '',
-    postalCode: '',
-    coordinates: null
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [newDestination, setNewDestination] = useState({ city: '', postalCode: '' });
   const [cities, setCities] = useState([]);
 
   // Load saved destinations on mount
   useEffect(() => {
-    const savedDestinations = localStorage.getItem('savedDestinations');
-    if (savedDestinations) {
-      setDestinations(JSON.parse(savedDestinations));
+    try {
+      const saved = localStorage.getItem('savedDestinations');
+      if (saved) setDestinations(JSON.parse(saved));
+    } catch (error) {
+      console.error('Impossible de lire les destinations enregistrées:', error);
     }
+    setHasLoaded(true);
   }, []);
 
-  // Save destinations when they change
+  // Persist destinations (only once the initial load is done, so we never overwrite with [])
   useEffect(() => {
-    localStorage.setItem('savedDestinations', JSON.stringify(destinations));
-  }, [destinations]);
+    if (hasLoaded) {
+      localStorage.setItem('savedDestinations', JSON.stringify(destinations));
+    }
+  }, [destinations, hasLoaded]);
 
-  // Handle postal code changes and find matching cities
+  // Suggest communes as soon as a full postal code is typed
   useEffect(() => {
     if (newDestination.postalCode.length === 5) {
-      const matchingCities = franceData.filter(
-        city => String(city.Code_postal).padStart(5, '0') === newDestination.postalCode
-      );
-      
-      console.log(matchingCities);
-      
+      const matchingCities = findCities(newDestination.postalCode);
       setCities(matchingCities);
-      
-      // Sélectionner automatiquement la première ville si c'est la seule
-      if (matchingCities.length > 0) {
-        const cityData = matchingCities[0];
-        const [lat, lng] = cityData.coordonnees_gps.split(', ').map(Number);
-        
-        setNewDestination(prev => ({
-          ...prev,
-          city: cityData.Nom_commune,
-          coordinates: { lat, lng }
-        }));
-      }
+      setNewDestination((prev) => ({ ...prev, city: matchingCities[0]?.Nom_commune ?? '' }));
     } else {
       setCities([]);
-      setNewDestination(prev => ({ 
-        ...prev, 
-        city: '',
-        coordinates: null 
-      }));
+      setNewDestination((prev) => ({ ...prev, city: '' }));
     }
   }, [newDestination.postalCode]);
 
-  const handleAddDestination = async (e) => {
+  const handleAddDestination = (e) => {
     e.preventDefault();
-    if (newDestination.city && newDestination.postalCode) {
-      setIsLoading(true);
-      try {
+    const cityData = cities.find((city) => city.Nom_commune === newDestination.city);
+    if (!cityData) return;
 
-        console.log(city.Code_postal);
-        
-        // Find city data in france.json
-        const cityData = franceData.find(
-          city => String(city.Code_postal).padStart(5, '0') === newDestination.postalCode && 
-                 city.Nom_commune === newDestination.city
-        );
-
-        if (!cityData) {
-          throw new Error('Ville non trouvée');
-        }
-
-        // Extract coordinates
-        const [lat, lng] = cityData.coordonnees_gps.split(', ').map(Number);
-        
-        const destinationWithCoords = {
-          ...newDestination,
-          coordinates: { lat, lng }
-        };
-
-        setDestinations([...destinations, destinationWithCoords]);
-        setNewDestination({ city: '', postalCode: '', coordinates: null });
-        setCities([]);
-      } catch (error) {
-        console.error('Erreur lors de l\'ajout de la destination:', error);
-      } finally {
-        setIsLoading(false);
+    setDestinations([
+      ...destinations,
+      {
+        city: newDestination.city,
+        postalCode: newDestination.postalCode,
+        coordinates: parseCoordinates(cityData)
       }
-    }
+    ]);
+    setNewDestination({ city: '', postalCode: '' });
   };
 
   const handleRemoveDestination = (index) => {
-    const newDestinations = destinations.filter((_, i) => i !== index);
-    setDestinations(newDestinations);
+    setDestinations(destinations.filter((_, i) => i !== index));
   };
 
   return (
-    <div className="w-full lg:basis-1/3 p-6 bg-white rounded-lg shadow-lg mt-8">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">
-        Mes destinations favorites
-      </h2>
+    <div className="card flex h-full flex-col p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="eyebrow">Vos points de repère</p>
+          <h2 className="mt-1 font-display text-2xl font-medium tracking-tight">Destinations favorites</h2>
+        </div>
+        {destinations.length > 0 && (
+          <span className="rounded-full bg-paper px-3 py-1 text-sm font-medium text-ink-soft">
+            {destinations.length}
+          </span>
+        )}
+      </div>
+      <p className="mt-2 text-sm text-muted">
+        Travail, école, famille… Le temps de trajet en voiture vers chacune sera calculé à chaque recherche.
+      </p>
 
-      <div className="space-y-3 mb-6">
+      <ul className="mt-5 flex-1 space-y-2">
+        {destinations.length === 0 && (
+          <li className="rounded-xl border border-dashed border-line-strong px-4 py-6 text-center text-sm text-muted">
+            Aucune destination pour l'instant.
+          </li>
+        )}
         {destinations.map((dest, index) => (
-          <div 
-            key={index} 
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-md"
+          <li
+            key={`${dest.postalCode}-${dest.city}-${index}`}
+            className="group flex items-center gap-3 rounded-xl border border-line bg-paper/50 px-4 py-3"
           >
-            <div>
-              <span className="font-medium">{dest.city}</span>
-              <span className="text-gray-500 ml-2">({dest.postalCode})</span>
-              {dest.coordinates && (
-                <span className="text-xs text-gray-400 block">
-                  lat: {dest.coordinates.lat} <br />
-                  lng: {dest.coordinates.lng}
-                </span>
-              )}
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-accent-soft font-display text-sm font-semibold text-accent">
+              {index + 1}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium text-ink">{dest.city}</p>
+              <p className="text-xs text-muted tabular-nums">
+                {dest.postalCode}
+                {dest.coordinates && ` · ${dest.coordinates.lat.toFixed(3)}, ${dest.coordinates.lng.toFixed(3)}`}
+              </p>
             </div>
             <button
+              type="button"
               onClick={() => handleRemoveDestination(index)}
-              className="text-red-500 hover:text-red-700"
+              className="grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-clay-soft hover:text-clay"
+              aria-label={`Supprimer ${dest.city}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path strokeLinecap="round" d="M6 6l12 12M18 6 6 18" />
               </svg>
             </button>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      <form onSubmit={handleAddDestination} className="space-y-4">
-        <div className="flex space-x-4">
-          <div className="w-32">
-            <input
-              type="text"
-              placeholder="Code postal"
-              value={newDestination.postalCode}
-              onChange={(e) => setNewDestination({
-                ...newDestination,
-                postalCode: e.target.value.slice(0, 5)
-              })}
-              pattern="[0-9]*"
-              maxLength="5"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-              disabled={isLoading}
-            />
-          </div>
-          <div className="flex-1">
-            <SelectWithCustomArrow
-              value={newDestination.city}
-              onChange={(e) => setNewDestination({
-                ...newDestination,
-                city: e.target.value
-              })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-              required
-              disabled={cities.length === 0 || isLoading}
-            >
-              <option value="">Saisissez un code postal</option>
-              {cities.map((city, index) => (
-                <option key={index} value={city.Nom_commune}>
-                  {city.Nom_commune}
-                </option>
-              ))}
-            </SelectWithCustomArrow>
-          </div>
+      <form onSubmit={handleAddDestination} className="mt-5 space-y-3 border-t border-line pt-5">
+        <div className="grid grid-cols-[7rem_minmax(0,1fr)] gap-2">
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="Code postal"
+            aria-label="Code postal de la destination"
+            value={newDestination.postalCode}
+            onChange={(e) =>
+              setNewDestination({ ...newDestination, postalCode: e.target.value.replace(/\D/g, '').slice(0, 5) })
+            }
+            className="field tabular-nums"
+            required
+          />
+          <SelectWithCustomArrow
+            value={newDestination.city}
+            onChange={(e) => setNewDestination({ ...newDestination, city: e.target.value })}
+            required
+            disabled={cities.length === 0}
+            placeholder="Commune"
+          >
+            {cities.map((city, index) => (
+              <option key={index} value={city.Nom_commune}>
+                {city.Nom_commune}
+              </option>
+            ))}
+          </SelectWithCustomArrow>
         </div>
-        <button
-          type="submit"
-          className={`w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Chargement...' : 'Ajouter une destination'}
+        <button type="submit" className="btn-secondary w-full" disabled={!newDestination.city}>
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+            <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+          </svg>
+          Ajouter une destination
         </button>
       </form>
     </div>

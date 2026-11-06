@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks,
    sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults,
-    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks, healthAmenities, stores, associations, educationAmenities, weatherData, waterData} from '../stores/search';
+    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks, healthAmenities, stores, associations, educationAmenities, weatherData, waterData, searchedLocation, serviceErrors} from '../stores/search';
 import {getDestinationsFromLocalStorage} from '../utils/helpers';
 import {getDuration} from '../services/durations';
 import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/georisks';
@@ -9,7 +9,7 @@ import {getLegislativesElectionResults, getPresidentElectionResults, getLegislat
 import { getInseeData } from '../services/insee';
 import franceData from '../data/france.json';
 import SelectWithCustomArrow from './SelectWithCustomArrow';
-import { getStoresByZipCode } from '../services/stores';
+import { getStoresByLatLng } from '../services/stores';
 import { getHealthAmenitiesByLatLng } from '../services/health';
 import { getSchoolsByLatLng } from '../services/schools';
 import { getAssociationsByZipCode } from '../services/associations';
@@ -75,6 +75,8 @@ const Search = () => {
     hasErrors.set(false);
     durationPerDestination.set([]);
     codeInsee.set('');
+    searchedLocation.set(null);
+    serviceErrors.set({});
     geoGasparRisks.set(null);
     sismicRisks.set(null);
     soilPollution.set(null);
@@ -120,6 +122,13 @@ const Search = () => {
       }
       
       codeInsee.set(codeInseeFromPostalCode);
+      searchedLocation.set({
+        city: formData.city,
+        postalCode: formData.postalCode,
+        codeInsee: codeInseeFromPostalCode,
+        lat,
+        lng
+      });
       incrementCompletedTasks();
 
       // Group 1: Geographic and risk data
@@ -132,7 +141,7 @@ const Search = () => {
       
       // Group 2: Amenities data
       const amenityRequests = [
-        getStoresByZipCode(formData.postalCode),
+        getStoresByLatLng(lat, lng),
         getHealthAmenitiesByLatLng(lat, lng),
         getSchoolsByLatLng(lat, lng),
         getAssociationsByZipCode(formData.postalCode),
@@ -213,71 +222,60 @@ const Search = () => {
     }));
   };
 
+  const isWaitingForCities = cities.length === 0 && formData.postalCode.length === 5;
+
   return (
-    <div className="w-full lg:basis-1/3 p-6 bg-white rounded-lg shadow-lg mt-8">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-        Recherche par localisation
-      </h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4" method="post">
-        <div className="space-y-2">
-          <label 
-            htmlFor="postalCode" 
-            className="block text-sm font-medium text-gray-700"
-          >
-            Code Postal
-          </label>
-          <input
-            type="text"
-            id="postalCode"
-            name="postalCode"
-            pattern="[0-9]*"
-            inputMode="numeric"
-            value={formData.postalCode}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            placeholder="75001"
-            required
-          />
-        </div>
+    <form
+      onSubmit={handleSubmit}
+      method="post"
+      className="card grid gap-3 p-3 sm:grid-cols-[9rem_minmax(0,1fr)_auto] sm:items-end sm:p-4"
+    >
+      <div>
+        <label htmlFor="postalCode" className="field-label">Code postal</label>
+        <input
+          type="text"
+          id="postalCode"
+          name="postalCode"
+          pattern="[0-9]*"
+          inputMode="numeric"
+          autoComplete="postal-code"
+          value={formData.postalCode}
+          onChange={handleChange}
+          className="field font-medium tabular-nums tracking-wider"
+          placeholder="75001"
+          required
+        />
+      </div>
 
-        <div className="space-y-2">
-          <label 
-            htmlFor="city" 
-            className="block text-sm font-medium text-gray-700"
-          >
-            Ville
-          </label>
-          <SelectWithCustomArrow
-            id="city"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-            required
-            disabled={cities.length === 0}
-            placeholder="Saisissez un code postal"
-          >
-            {cities.map((city, index) => (
-              <option key={index} value={city.Nom_commune}>
-                {city.Nom_commune}
-              </option>
-            ))}
-          </SelectWithCustomArrow>
-          {cities.length === 0 && formData.postalCode.length === 5 && (
-            <p className="text-sm text-gray-500 mt-1">
-              Chargement des villes...
-            </p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+      <div>
+        <label htmlFor="city" className="field-label">
+          Commune {isWaitingForCities && <span className="normal-case tracking-normal text-muted">· chargement…</span>}
+        </label>
+        <SelectWithCustomArrow
+          id="city"
+          name="city"
+          value={formData.city}
+          onChange={handleChange}
+          required
+          disabled={cities.length === 0}
+          placeholder="Saisissez d'abord un code postal"
         >
-          Rechercher
-        </button>
-      </form>
-    </div>
+          {cities.map((city, index) => (
+            <option key={index} value={city.Nom_commune}>
+              {city.Nom_commune}
+            </option>
+          ))}
+        </SelectWithCustomArrow>
+      </div>
+
+      <button type="submit" className="btn-primary w-full sm:w-auto">
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" strokeLinecap="round" />
+        </svg>
+        Analyser
+      </button>
+    </form>
   );
 };
 
