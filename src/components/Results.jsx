@@ -240,10 +240,10 @@ const Results = () => {
               ))}
             </nav>
 
-            <div className="mt-8 grid gap-8 lg:grid-cols-[13rem_minmax(0,1fr)]">
+            <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[13rem_minmax(0,1fr)]">
               <TableOfContents active={active} />
 
-              <div className="space-y-6">
+              <div className="min-w-0 space-y-6">
                 <Section id="trajets" index={1} title="Trajets" description="Temps de trajet en voiture vers vos destinations favorites.">
                   <Loadable
                     loading={loading}
@@ -390,7 +390,7 @@ const Results = () => {
 
                 <Section id="elections" index={8} title="Élections" description="Résultats dans la commune.">
                   <Loadable loading={loading} empty={!$presidential2022 && !$legislatives2022 && !$legislatives2024}>
-                    <div className="grid gap-4 xl:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                       {$presidential2022 && (
                         <ElectionResults title="Présidentielle 2022" data={$presidential2022} percentKey="pourcentage" />
                       )}
