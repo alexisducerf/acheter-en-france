@@ -1,6 +1,10 @@
 [build]
   functions = "netlify/functions"
 
+[build.environment]
+  # Astro requires Node >= 22.23.4 (Netlify defaults to an older version)
+  NODE_VERSION = "24"
+
 [functions]
 directory = "netlify/functions"
 node_bundler = "esbuild"
