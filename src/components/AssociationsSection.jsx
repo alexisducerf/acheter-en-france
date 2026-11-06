@@ -1,4 +1,11 @@
-import AmenityCard from './AmenityCard';
+import { Badge, Empty, formatNumber } from './ui';
+
+const Field = ({ label, children }) => (
+  <div>
+    <dt className="text-xs text-muted">{label}</dt>
+    <dd className="mt-0.5 break-words text-ink-soft">{children || '—'}</dd>
+  </div>
+);
 
 const AssociationsSection = ({ associations = [], total = 0 }) => {
   if (!Array.isArray(associations)) {
@@ -6,118 +13,69 @@ const AssociationsSection = ({ associations = [], total = 0 }) => {
     return null;
   }
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Non renseignée';
-    return new Date(dateString).toLocaleDateString('fr-FR');
-  };
+  if (associations.length === 0) {
+    return <Empty>Aucune association enregistrée au Répertoire national des associations.</Empty>;
+  }
 
-  const getStatus = (association) => {
-    if (association.dissolution_date) return 'Dissoute';
-    return association.position || 'Non renseigné';
-  };
+  const active = associations.filter((a) => a.position === 'Active').length;
 
   return (
-    <div className="space-y-8">
-      <div className="bg-white p-4 rounded-lg border border-gray-200">
-        <div className="flex items-center justify-between">
-          <h2 className="font-medium text-gray-700">
-            Les dernières {associations.length} association{associations.length > 1 ? 's' : ''} sur {total}
-          </h2>
-          <div className="flex gap-2">
-            <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
-              {associations.filter(a => a.position === 'Active').length} actives
-            </span>
-            <span className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded">
-              {associations.filter(a => a.position !== 'Active').length} inactives
-            </span>
-          </div>
-        </div>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+        <span>
+          Les {associations.length} plus récentes sur <strong className="text-ink">{formatNumber(total)}</strong>
+        </span>
+        <Badge tone="good">{active} actives</Badge>
+        <Badge tone="neutral">{associations.length - active} inactives</Badge>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="divide-y divide-gray-200">
-          {associations.map((association) => (
-            <div key={association.id} className="p-4 hover:bg-gray-50">
-              
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{association.title}</h4>
-                    <p className="mt-1 text-sm text-gray-600">{association.object}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded ${
-                      association.position === 'Active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {association.position}
-                    </span>
-                    {association.ispublic === 'oui' && (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-                        Utilité publique
-                      </span>
-                    )}
-                  </div>
+      <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line">
+        {associations.map((association) => (
+          <li key={association.id}>
+            <details className="group">
+              <summary className="flex cursor-pointer list-none items-start gap-4 px-5 py-4 transition hover:bg-paper/60">
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-medium text-ink">{association.title}</h4>
+                  {association.object && (
+                    <p className="mt-1 line-clamp-2 text-sm text-muted group-open:line-clamp-none">{association.object}</p>
+                  )}
                 </div>
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  <Badge tone={association.position === 'Active' ? 'good' : 'neutral'}>{association.position}</Badge>
+                  {association.ispublic === 'oui' && <Badge tone="accent">Utilité publique</Badge>}
+                </div>
+                <svg className="mt-1 h-4 w-4 shrink-0 text-muted transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                </svg>
+              </summary>
 
-                <dl className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2 text-sm">
-                  <div className="space-y-1">
-                    <dt className="text-gray-500">Création</dt>
-                    <dd className="font-medium">{association.creationDate}</dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-gray-500">Dernière mis à jour</dt>
-                    <dd className="font-medium">{association.lastUpdate}</dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-gray-500">Identifiant RNA</dt>
-                    <dd className="font-medium">{association.id}</dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-gray-500">Catégorie</dt>
-                    <dd className="font-medium">{association.amenityType}</dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-gray-500">Adresse</dt>
-                    <dd className="font-medium">{association.address || 'Non renseignée'}</dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-gray-500">Département</dt>
-                    <dd className="font-medium">{association.department}</dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-gray-500">Région</dt>
-                    <dd className="font-medium">{association.region}</dd>
-                  </div>
-                  <div className="space-y-1">
-                    <dt className="text-gray-500">Intercommunalité</dt>
-                    <dd className="font-medium">{association.epci_name}</dd>
-                  </div>
-                  {(association.website && (
-                  <div className="space-y-1">
-                    <dt className="text-gray-500">Website</dt>
-                    <dd className="font-medium">{association.website}</dd>
-                  </div>))}
+              <div className="border-t border-line bg-paper/40 px-5 py-4">
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                  <Field label="Création">{association.creationDate}</Field>
+                  <Field label="Dernière mise à jour">{association.lastUpdate}</Field>
+                  <Field label="Identifiant RNA">{association.id}</Field>
+                  <Field label="Catégorie">{association.amenityType}</Field>
+                  <Field label="Adresse">{association.address}</Field>
+                  <Field label="Intercommunalité">{association.epci_name}</Field>
+                  <Field label="Département">{association.department}</Field>
+                  <Field label="Région">{association.region}</Field>
+                  {association.website && <Field label="Site web">{association.website}</Field>}
                 </dl>
-
                 {association.geo_point_2d && (
-                  <div className="pt-2">
-                    <a
-                      href={`https://www.google.com/maps?q=${association.geo_point_2d.lat},${association.geo_point_2d.lon}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
-                    >
-                      <span>📍</span> Voir sur la carte
-                    </a>
-                  </div>
+                  <a
+                    href={`https://www.google.com/maps?q=${association.geo_point_2d.lat},${association.geo_point_2d.lon}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+                  >
+                    Voir sur la carte →
+                  </a>
                 )}
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
+            </details>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import AmenityCard from "./AmenityCard";
+import { Empty, SubHeading } from "./ui";
 
 const SchoolsSection = ({ schools }) => {
   // Group schools by type
@@ -25,38 +26,37 @@ const SchoolsSection = ({ schools }) => {
     'établissement scolaire'
   ];
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="font-medium text-gray-700">
-          {schools.length} établissement{schools.length > 1 ? 's' : ''} scolaire{schools.length > 1 ? 's' : ''} dans un rayon de 5km
-        </p>
-      </div>
-      
-      {typeOrder.map(type => {
-        const typeSchools = groupedSchools[type];
-        if (!typeSchools) return null;
+  if (schools.length === 0) {
+    return <Empty>Aucun établissement scolaire dans un rayon de 5 km.</Empty>;
+  }
 
-        return (
-          <div key={type} className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-800 border-b border-gray-200 pb-2">
-              {type.charAt(0).toUpperCase() + type.slice(1)} ({typeSchools.length})
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {typeSchools.map((school, i) => (
-                <AmenityCard 
-                  key={i} 
-                  amenity={{
-                    ...school,
-                    amenityType: school.schoolType,
-                    isPrivate: school.isPrivate ? '(Privé)' : '(Public)'
-                  }} 
-                />
-              ))}
-            </div>
+  // Known types first, in teaching order, then anything unexpected
+  const types = [
+    ...typeOrder.filter((type) => groupedSchools[type]),
+    ...Object.keys(groupedSchools).filter((type) => !typeOrder.includes(type)),
+  ];
+
+  return (
+    <div className="space-y-8">
+      {types.map((type) => (
+        <div key={type}>
+          <SubHeading count={groupedSchools[type].length}>
+            {type.charAt(0).toUpperCase() + type.slice(1)}
+          </SubHeading>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {groupedSchools[type].map((school, i) => (
+              <AmenityCard
+                key={i}
+                amenity={{
+                  ...school,
+                  amenityType: school.schoolType,
+                  isPrivate: school.isPrivate === undefined ? null : school.isPrivate ? 'Privé' : 'Public'
+                }}
+              />
+            ))}
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 };
