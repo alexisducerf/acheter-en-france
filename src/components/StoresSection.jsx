@@ -1,6 +1,7 @@
 import { useState } from "react";
 import AmenityCard from "./AmenityCard";
 import { Empty } from "./ui";
+import { STORES_RADIUS_KM } from "../services/stores";
 
 const StoresSection = ({ stores }) => {
   // Group stores by category
@@ -54,13 +55,15 @@ const StoresSection = ({ stores }) => {
     'furniture': 'Meubles',
     'garden_centre': 'Jardineries',
     'optician': 'Opticiens',
-    'agrarian': 'Matériel agricole'
+    'agrarian': 'Matériel agricole',
+    'books': 'Librairies',
+    'cafe': 'Cafés et bars'
   };
 
   const [selected, setSelected] = useState('all');
 
   if (stores.length === 0) {
-    return <Empty>Aucun commerce référencé dans OpenStreetMap pour cette commune.</Empty>;
+    return <Empty>Aucun commerce trouvé dans un rayon de {STORES_RADIUS_KM} km.</Empty>;
   }
 
   const label = (category) => categoryTranslations[category] || category;

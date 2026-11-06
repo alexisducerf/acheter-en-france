@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
+import { STORES_RADIUS_KM } from '../services/stores';
 import { useStore } from '@nanostores/react';
 import {
   isLoaded, isLoading, hasErrors, durationPerDestination, geoGasparRisks, sismicRisks, soilPollution,
   legislativesElectionResults, presidentElectionResults, legislativesElectionResults2024, inseeData,
   healthAmenities, stores, associations, educationAmenities, weatherData, serviceErrors, waterData,
-  searchedLocation
+  searchedLocation, savedSearchDate
 } from '../stores/search';
+import { runSearch } from '../utils/runSearch';
 import ProgressBar from './ProgressBar';
 import AmenityCard from './AmenityCard';
 import StoresSection from './StoresSection';
@@ -123,6 +125,7 @@ const Results = () => {
   const $weather = useStore(weatherData);
   const $water = useStore(waterData);
   const $errors = useStore(serviceErrors);
+  const $savedAt = useStore(savedSearchDate);
 
   const hasSearchStarted = $isLoading || $isLoaded || $hasErrors;
   const active = useActiveSection(hasSearchStarted && !$hasErrors);
@@ -154,7 +157,7 @@ const Results = () => {
       href: '#eau'
     },
     { label: 'Santé', value: $health?.length ?? 0, hint: 'Équipements', href: '#sante' },
-    { label: 'Commerces', value: $stores?.length ?? 0, hint: 'Dans la commune', href: '#commerces' },
+    { label: 'Commerces', value: $stores?.length ?? 0, hint: `Rayon de ${STORES_RADIUS_KM} km`, href: '#commerces' },
     { label: 'Écoles', value: $schools?.length ?? 0, hint: 'Rayon de 5 km', href: '#ecoles' },
     { label: 'Associations', value: formatNumber($associations?.total ?? 0), hint: 'Déclarées', href: '#associations' },
   ];
@@ -178,6 +181,19 @@ const Results = () => {
                 <span>Code postal <strong className="font-medium text-ink-soft">{$location.postalCode}</strong></span>
                 <span>INSEE <strong className="font-medium text-ink-soft">{$location.codeInsee}</strong></span>
                 <span>{$location.lat.toFixed(4)}, {$location.lng.toFixed(4)}</span>
+              </p>
+            )}
+            {$savedAt && $location && (
+              <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
+                Résultats enregistrés le{' '}
+                {new Date($savedAt).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })}
+                <button
+                  type="button"
+                  className="font-medium text-accent hover:underline"
+                  onClick={() => runSearch({ postalCode: $location.postalCode, city: $location.city })}
+                >
+                  Actualiser
+                </button>
               </p>
             )}
           </div>
@@ -332,7 +348,7 @@ const Results = () => {
                   id="sante"
                   index={4}
                   title="Santé"
-                  description="Médecins, pharmacies, hôpitaux et autres équipements (OpenStreetMap)."
+                  description="Hôpitaux, médecins, pharmacies et autres professionnels de santé (répertoire SIRENE)."
                   aside={$health?.length ? <Count>{$health.length}</Count> : null}
                 >
                   <Loadable loading={loading} error={$errors.health} empty={!$health?.length}>
@@ -346,7 +362,7 @@ const Results = () => {
                   id="commerces"
                   index={5}
                   title="Commerces"
-                  description="Commerces référencés dans OpenStreetMap."
+                  description={`Commerces, restaurants et services dans un rayon de ${STORES_RADIUS_KM} km (répertoire SIRENE).`}
                   aside={$stores?.length ? <Count>{$stores.length}</Count> : null}
                 >
                   <Loadable loading={loading} empty={!$stores}>
@@ -358,7 +374,7 @@ const Results = () => {
                   id="ecoles"
                   index={6}
                   title="Établissements scolaires"
-                  description="De la maternelle à l'enseignement supérieur, dans un rayon de 5 km."
+                  description="De la maternelle au lycée, dans un rayon de 5 km (Annuaire de l'éducation)."
                   aside={$schools?.length ? <Count>{$schools.length}</Count> : null}
                 >
                   <Loadable loading={loading} empty={!$schools}>

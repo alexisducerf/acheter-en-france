@@ -1,72 +1,69 @@
-import { getOsmElements, addressFromTags } from './osm';
 import { setServiceError } from '../stores/search';
 
-// Schools, kindergartens and other education facilities from OpenStreetMap around a point.
-const getSchoolsByLatLng = (lat, lng) =>
-  getOsmElements('schools', lat, lng)
-    .then((elements) =>
-      elements.map(({ id, type, latitude, longitude, tags }) => ({
-        id,
-        type,
-        latitude,
-        longitude,
-        name: tags.name || 'Non renseigné',
-        schoolType: getSchoolType(tags),
-        operator: tags.operator || '',
-        address: addressFromTags(tags),
-        phone: tags.phone || '',
-        website: tags.website || '',
-        capacity: tags.capacity || '',
-        isPrivate: tags.operator === 'private',
-      }))
-    )
-    .catch((error) => {
-      setServiceError('schools', `Impossible de charger les établissements scolaires: ${error.message}`);
-      return [];
-    });
+// Annuaire de l'éducation (Ministère de l'Éducation nationale), Opendatasoft API.
+const API_URL = 'https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-annuaire-education/records';
+const RADIUS_KM = 5;
+const LIMIT = 100; // API maximum per request
 
-// Update the school type detection
-const getSchoolType = (tags) => {
-  // Check for empty or invalid tags
-  if (!tags || typeof tags !== 'object') return 'établissement scolaire';
+// Administrative offices and guidance centres aren't schools.
+const EXCLUDED_TYPES = ['Service Administratif', 'Information et orientation'];
 
-  // First check specific amenity and education tags
-  if (tags.amenity === 'kindergarten' || tags.school === 'nursery' || tags.isced === '0') return 'maternelle';
-  if (tags.education_level === 'primary' || tags.school === 'primary' || tags.isced === '1') return 'primaire';
-  if (tags.education_level === 'secondary' || tags.school === 'secondary' || tags.isced === '2') return 'collège';
-  if (tags.education_level === 'secondary_senior' || tags.school === 'high_school' || tags.isced === '3') return 'lycée';
-  if (tags.amenity === 'university' || tags.isced === '5' || tags.isced === '6') return 'université';
-  if (tags.amenity === 'college' || tags.isced === '4') return 'enseignement supérieur';
-  if (tags.amenity === 'music_school') return 'école de musique';
-  if (tags.amenity === 'language_school') return 'école de langues';
-  if (tags.amenity === 'driving_school') return 'auto-école';
-
-  // Try to determine type from name if available
-  if (tags.name) {
-    const name = tags.name.toLowerCase();
-    const normalizedName = name
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, ""); // Remove diacritics
-
-    // Common French school name patterns
-    if (/(^|\s)(creche|crèche|halte garderie|garderie)($|\s)/.test(name)) return 'crèche';
-    if (/(^|\s)(maternelle|petite section|moyenne section|grande section)($|\s)/.test(name)) return 'maternelle';
-    if (/(^|\s)(elementaire|élémentaire|primaire|ecole|école)($|\s)/.test(name)) return 'primaire';
-    if (/(^|\s)(college|collège)($|\s)/.test(normalizedName)) return 'collège';
-    if (/(^|\s)(lycee|lycée)($|\s)/.test(normalizedName)) return 'lycée';
-    if (/(^|\s)(universite|université|fac|faculte|faculté)($|\s)/.test(normalizedName)) return 'université';
-    if (/(^|\s)(conservatoire|musique)($|\s)/.test(name)) return 'école de musique';
-    if (/(^|\s)(langues|berlitz|linguistique)($|\s)/.test(name)) return 'école de langues';
-    if (/(^|\s)(auto.?ecole|auto.?école|permis)($|\s)/.test(normalizedName)) return 'auto-école';
-    if (/(^|\s)(institut|ecole superieure|école supérieure|iut|bts)($|\s)/.test(normalizedName)) return 'enseignement supérieur';
+// Maps a record to the labels used by SchoolsSection.
+const getSchoolType = (record) => {
+  switch (record.type_etablissement) {
+    case 'Ecole':
+      return record.ecole_maternelle && !record.ecole_elementaire ? 'maternelle' : 'primaire';
+    case 'Collège':
+      return 'collège';
+    case 'Lycée':
+    case 'EREA':
+      return 'lycée';
+    case 'Médico-social':
+      return 'établissement médico-social';
+    default:
+      return 'établissement scolaire';
   }
+};
 
-  // If school tag exists but no specific type was found
-  if (tags.amenity === 'school' || tags.building === 'school') {
-    return 'établissement scolaire';
+const formatAddress = (record) => ({
+  street: [record.adresse_1, [record.code_postal, record.nom_commune].filter(Boolean).join(' ')]
+    .filter(Boolean)
+    .join(', '),
+});
+
+// Schools (maternelle to lycée) around a point, nearest first.
+const getSchoolsByLatLng = async (lat, lng) => {
+  const point = `geom'POINT(${lng} ${lat})'`;
+  const params = new URLSearchParams({
+    where: `within_distance(position, ${point}, ${RADIUS_KM}km) and etat='OUVERT'`,
+    order_by: `distance(position, ${point})`,
+    limit: LIMIT,
+  });
+
+  try {
+    const response = await fetch(`${API_URL}?${params}`);
+    if (!response.ok) {
+      throw new Error(`Erreur lors de la récupération des données (${response.status})`);
+    }
+    const { results = [] } = await response.json();
+
+    return results
+      .filter((record) => !EXCLUDED_TYPES.includes(record.type_etablissement))
+      .map((record) => ({
+        id: record.identifiant_de_l_etablissement,
+        name: record.nom_etablissement || 'Non renseigné',
+        schoolType: getSchoolType(record),
+        latitude: record.latitude,
+        longitude: record.longitude,
+        address: formatAddress(record),
+        phone: record.telephone || '',
+        website: record.web || '',
+        isPrivate: record.statut_public_prive === 'Privé',
+      }));
+  } catch (error) {
+    setServiceError('schools', `Impossible de charger les établissements scolaires: ${error.message}`);
+    return [];
   }
-
-  return 'établissement scolaire';
 };
 
 export { getSchoolsByLatLng };

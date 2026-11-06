@@ -1,20 +1,8 @@
 import { useEffect, useState } from 'react';
-import { isLoaded, isLoading, hasErrors, durationPerDestination, codeInsee, geoGasparRisks,
-   sismicRisks, soilPollution, legislativesElectionResults, presidentElectionResults,
-    legislativesElectionResults2024, inseeData, incrementCompletedTasks, completedTasks, healthAmenities, stores, associations, educationAmenities, weatherData, waterData, searchedLocation, serviceErrors} from '../stores/search';
-import {getDestinationsFromLocalStorage} from '../utils/helpers';
-import {getDuration} from '../services/durations';
-import {getGeoGasparRisks, getSismicRisks, getSoilPollution} from '../services/georisks';
-import {getLegislativesElectionResults, getPresidentElectionResults, getLegislativesElectionResults2024} from '../services/political';
-import { getInseeData } from '../services/insee';
-import franceData from '../data/france.json';
+import { useStore } from '@nanostores/react';
 import SelectWithCustomArrow from './SelectWithCustomArrow';
-import { getStoresByLatLng } from '../services/stores';
-import { getHealthAmenitiesByLatLng } from '../services/health';
-import { getSchoolsByLatLng } from '../services/schools';
-import { getAssociationsByZipCode } from '../services/associations';
-import { getWeatherFromLastYear } from '../services/meteo';
-import { tapWaterAnalysis } from '../services/water'; 
+import { runSearch, restoreSearch } from '../utils/runSearch';
+import { searchHistory, loadHistory, deleteSavedSearch } from '../utils/history';
 
 const Search = () => {
   const [formData, setFormData] = useState({
@@ -65,152 +53,9 @@ const Search = () => {
     }
   }, [formData.postalCode]);
   
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Reset all stores at the beginning of each search
-    completedTasks.set(0);
-    isLoaded.set(false);
-    isLoading.set(true);
-    hasErrors.set(false);
-    durationPerDestination.set([]);
-    codeInsee.set('');
-    searchedLocation.set(null);
-    serviceErrors.set({});
-    geoGasparRisks.set(null);
-    sismicRisks.set(null);
-    soilPollution.set(null);
-    legislativesElectionResults.set(null);
-    presidentElectionResults.set(null);
-    legislativesElectionResults2024.set(null);
-    inseeData.set(null);
-    healthAmenities.set(null);
-    stores.set(null);
-    associations.set(null);
-    educationAmenities.set(null);
-    weatherData.set(null);
-    waterData.set(null);
-
-    // Scroll to results after a short delay
-    setTimeout(() => {
-      document.getElementById('search-results')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }, 100);
-    
-    try {
-      // Get city data first as it's required for other requests
-      const cityData = franceData.find(city => 
-        city.Code_postal === parseInt(formData.postalCode) && 
-        city.Nom_commune === formData.city
-      );
-
-      if (!cityData) {
-        throw new Error('Ville non trouvée');
-      }
-
-      const [lat, lng] = cityData.coordonnees_gps.split(', ').map(Number);
-      let codeInseeFromPostalCode = cityData.Code_commune_INSEE;
-
-      codeInseeFromPostalCode = String(codeInseeFromPostalCode);
-
-
-      //if the code insee is only 4 digits, add a leading zero
-      if (codeInseeFromPostalCode.length === 4) {
-        codeInseeFromPostalCode = `0${codeInseeFromPostalCode}`;
-      }
-      
-      codeInsee.set(codeInseeFromPostalCode);
-      searchedLocation.set({
-        city: formData.city,
-        postalCode: formData.postalCode,
-        codeInsee: codeInseeFromPostalCode,
-        lat,
-        lng
-      });
-      incrementCompletedTasks();
-
-      // Group 1: Geographic and risk data
-      const geoRequests = [
-        getSismicRisks(formData.city, codeInseeFromPostalCode),
-        getSoilPollution(formData.city, codeInseeFromPostalCode),
-        getGeoGasparRisks(formData.city, codeInseeFromPostalCode),
-        tapWaterAnalysis(codeInseeFromPostalCode)
-      ];
-      
-      // Group 2: Amenities data
-      const amenityRequests = [
-        getStoresByLatLng(lat, lng),
-        getHealthAmenitiesByLatLng(lat, lng),
-        getSchoolsByLatLng(lat, lng),
-        getAssociationsByZipCode(formData.postalCode),
-        getWeatherFromLastYear(lat, lng)
-      ];
-
-      // Group 3: Political and demographic data
-      const politicalRequests = [
-        getLegislativesElectionResults(codeInseeFromPostalCode),
-        getPresidentElectionResults(codeInseeFromPostalCode),
-        getLegislativesElectionResults2024(codeInseeFromPostalCode),
-        getInseeData(codeInseeFromPostalCode)
-      ];
-
-      // Get destinations data
-      const destinations = getDestinationsFromLocalStorage();
-      incrementCompletedTasks();
-
-      // Execute all requests in parallel
-      const [
-        geoResults,
-        amenityResults,
-        politicalResults,
-        durationResults
-      ] = await Promise.all([
-        Promise.all(geoRequests),
-        Promise.all(amenityRequests),
-        Promise.all(politicalRequests),
-        Promise.all(
-          destinations.map(dest => 
-            getDuration(lat, lng, dest.coordinates.lat, dest.coordinates.lng, dest.city, dest.postalCode)
-          )
-        )
-      ]);
-
-      // Update stores with results
-      const [sismicRisksGeo, soilPollutionGeo, geoGasparRisksGeo, tapWaterAnalysisGeo] = geoResults;
-      sismicRisks.set(sismicRisksGeo);
-      soilPollution.set(soilPollutionGeo);
-      geoGasparRisks.set(geoGasparRisksGeo);
-      waterData.set(tapWaterAnalysisGeo);
-      incrementCompletedTasks();
-
-      const [storesFetch, healthAmenitiesFetch, educationAmenitiesFetch, associationsFetch, weatherDataFetch] = amenityResults;
-      stores.set(storesFetch);
-      healthAmenities.set(healthAmenitiesFetch);
-      educationAmenities.set(educationAmenitiesFetch);
-      associations.set(associationsFetch);
-      weatherData.set(weatherDataFetch);
-      incrementCompletedTasks();
-
-      const [legislativesResults, presidentResults, legislatives2024Results, inseeDataFetch] = politicalResults;
-      legislativesElectionResults.set(legislativesResults);
-      presidentElectionResults.set(presidentResults);
-      legislativesElectionResults2024.set(legislatives2024Results);
-      inseeData.set(inseeDataFetch);
-      incrementCompletedTasks();
-
-      durationPerDestination.set(durationResults);
-      incrementCompletedTasks();
-
-      isLoaded.set(true);
-
-    } catch (error) {
-      console.error('Search error:', error);
-      hasErrors.set(true);
-    } finally {
-      isLoading.set(false);
-    }
+    runSearch(formData);
   };
 
   const handleChange = (e) => {
@@ -225,6 +70,7 @@ const Search = () => {
   const isWaitingForCities = cities.length === 0 && formData.postalCode.length === 5;
 
   return (
+    <>
     <form
       onSubmit={handleSubmit}
       method="post"
@@ -276,6 +122,51 @@ const Search = () => {
         Analyser
       </button>
     </form>
+    <RecentSearches />
+    </>
+  );
+};
+
+const formatSavedAt = (timestamp) =>
+  new Date(timestamp).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+// Last searches saved in the browser: a click shows them again without fetching anything.
+const RecentSearches = () => {
+  const $history = useStore(searchHistory);
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  if ($history.length === 0) return null;
+
+  return (
+    <div className="mt-4">
+      <p className="eyebrow mb-2">Recherches récentes</p>
+      <ul className="flex flex-wrap gap-2">
+        {$history.map((entry) => (
+          <li key={entry.id} className="flex items-center rounded-full border border-line bg-surface text-sm text-ink-soft transition hover:border-line-strong">
+            <button
+              type="button"
+              onClick={() => restoreSearch(entry.id)}
+              className="py-1.5 pl-3 pr-1 text-left hover:text-ink"
+              title={`Résultats du ${formatSavedAt(entry.savedAt)}`}
+            >
+              <span className="font-medium text-ink">{entry.city.toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase())}</span>{' '}
+              <span className="tabular-nums text-muted">{entry.postalCode}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => deleteSavedSearch(entry.id)}
+              className="rounded-full px-2 py-1.5 text-muted hover:text-clay"
+              aria-label={`Supprimer ${entry.city} de l'historique`}
+            >
+              ×
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
 
