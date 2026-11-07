@@ -15,6 +15,8 @@ import SchoolsSection from './SchoolsSection';
 import AssociationsSection from './AssociationsSection';
 import WeatherSection from './WeatherSection';
 import ElectionResults from './ElectionResults';
+import ScoreCard from './ScoreCard';
+import { computeRating } from '../utils/rating';
 import { Section, Badge, Count, Loadable, Empty, ErrorNote, Spinner, SubHeading, formatNumber } from './ui';
 
 const SECTIONS = [
@@ -145,6 +147,24 @@ const Results = () => {
     }, {})
   ).sort((a, b) => b[1] - a[1]);
 
+  const rating = loading
+    ? null
+    : computeRating({
+        sismicRisks: $seismic,
+        soilPollution: $soil,
+        geoGasparRisks: $gaspar,
+        waterData: $water,
+        healthAmenities: $health,
+        stores: $stores,
+        educationAmenities: $schools,
+        durationPerDestination: $durations,
+        legislativesElectionResults2024: $legislatives2024,
+        presidentElectionResults: $presidential2022,
+        legislativesElectionResults: $legislatives2022,
+        inseeData: $insee,
+        weatherData: $weather,
+      });
+
   const keyFigures = [
     { label: 'Sismicité', value: $seismic || '—', hint: 'Zone de 1 à 5', tone: seismicTone($seismic), href: '#risques' },
     { label: 'Risques recensés', value: gasparRisks.length, hint: 'Base GASPAR', tone: gasparRisks.length > 3 ? 'warn' : 'neutral', href: '#risques' },
@@ -224,6 +244,8 @@ const Results = () => {
 
         {!$hasErrors && (
           <>
+            <ScoreCard rating={rating} loading={loading} />
+
             {/* Key figures */}
             <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
               {keyFigures.map((figure) => (
