@@ -157,7 +157,6 @@ const Results = () => {
         healthAmenities: $health,
         stores: $stores,
         educationAmenities: $schools,
-        durationPerDestination: $durations,
         legislativesElectionResults2024: $legislatives2024,
         presidentElectionResults: $presidential2022,
         legislativesElectionResults: $legislatives2022,
@@ -272,9 +271,9 @@ const Results = () => {
                     empty={durations.length === 0}
                     emptyText="Ajoutez des destinations favorites pour calculer les temps de trajet."
                   >
-                    <ul className="grid gap-3 sm:grid-cols-2">
+                    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       {durations.map((dest, i) => (
-                        <li key={i} className="flex items-center justify-between gap-4 rounded-xl border border-line px-4 py-3">
+                        <li key={i} className="flex min-w-0 items-center justify-between gap-4 rounded-xl border border-line px-4 py-3">
                           <div className="min-w-0">
                             <p className="truncate font-medium">{dest.city}</p>
                             <p className="text-xs text-muted tabular-nums">{dest.postalCode} · {dest.distance} km</p>

@@ -3,16 +3,13 @@
 // the overall score is the weighted average of the available categories, reweighted.
 // Every threshold lives in CONFIG so the rating can be tuned in one place.
 
-import { convertDurationToMinutes } from './helpers';
-
 export const CONFIG = {
   // Weights of each category in the overall score (sum = 100).
   weights: {
     risks: 25,
-    amenities: 20,
-    travel: 15,
-    politics: 15,
-    insee: 10,
+    amenities: 25,
+    politics: 20,
+    insee: 15,
     water: 10,
     climate: 5,
   },
@@ -51,7 +48,6 @@ export const CONFIG = {
     },
   },
 
-  travel: { bestMinutes: 15, worstMinutes: 90 },
 
   politics: {
     // Weight of each election in the political sub-score.
@@ -95,7 +91,6 @@ export const CONFIG = {
 export const CATEGORY_LABELS = {
   risks: 'Risques',
   amenities: 'Équipements',
-  travel: 'Trajets',
   politics: 'Politique',
   insee: 'Socio-économie',
   water: 'Eau potable',
@@ -223,21 +218,6 @@ const scoreAmenities = ({ healthAmenities, stores, educationAmenities }) => {
 
   const score = average(parts);
   return score === null ? null : { score, details };
-};
-
-const scoreTravel = ({ durationPerDestination }) => {
-  const destinations = (durationPerDestination || []).filter(Boolean);
-  if (!destinations.length) return null;
-
-  const { bestMinutes, worstMinutes } = CONFIG.travel;
-  const details = [];
-  const scores = destinations.map((dest) => {
-    const minutes = convertDurationToMinutes(dest.duration);
-    const s = linear(minutes, bestMinutes, worstMinutes);
-    details.push(`${dest.city} : ${dest.duration} → ${round(s)}`);
-    return s;
-  });
-  return { score: average(scores), details };
 };
 
 // Share-weighted rating of the candidates of one election, or null.
@@ -388,7 +368,6 @@ const scoreClimate = ({ weatherData }) => {
 const SCORERS = {
   risks: scoreRisks,
   amenities: scoreAmenities,
-  travel: scoreTravel,
   politics: scorePolitics,
   insee: scoreInsee,
   water: scoreWater,
